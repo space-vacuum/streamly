@@ -97,7 +97,7 @@ import Streamly.Internal.Data.Array.Foreign.Type (Array(..))
 import Streamly.Internal.Data.Stream.Serial (SerialT)
 import Streamly.Internal.Data.Unfold (Unfold)
 import Streamly.Internal.Data.Fold (Fold)
-import Streamly.Internal.Data.Stream.ToStream (ToStream(..), FromStream(..))
+import Streamly.Internal.Data.Stream.ToStream (IsFold(..), IsUnfold(..))
 
 import qualified Streamly.Internal.Data.Stream.Serial as Serial
 import qualified Streamly.Internal.Data.Array.Foreign as Array
@@ -138,10 +138,10 @@ getC = liftIO getChar
 -- /Pre-release/
 --
 {-# INLINE_EARLY getL #-}
-getL :: forall m a. (MonadIO m, FromStream m Char a) => m a
+getL :: forall m a. (MonadIO m, IsFold m Char a) => m a
 getL =
     liftIO getLine
-        >>= (fromStream . (Stream.fromList :: String -> SerialT m Char))
+        >>= (Stream.fold eliminator . (Stream.fromList :: String -> SerialT m Char))
 
 {-# RULES "getLStr" getL = getLStr #-}
 {-# INLINE getLStr #-}
@@ -231,9 +231,9 @@ getLines = (Stream.splitWithSuffix (== '\n') f) getChars
 -- /Pre-release/
 --
 {-# INLINE_EARLY getLines #-}
-getLines :: forall m a. (MonadAsync m, FromStream m Char a) => SerialT m a
+getLines :: forall m a. (MonadAsync m, IsFold m Char a) => SerialT m a
 getLines =
-    Stream.mapM (fromStream . (Stream.fromList :: String -> SerialT m Char))
+    Stream.mapM (Stream.fold eliminator . (Stream.fromList :: String -> SerialT m Char))
     (Stream.repeatM (liftIO getLine) :: SerialT m String)
 
 {-# RULES "getLinesStr" getLines = getLinesStr #-}
@@ -262,8 +262,8 @@ putChunk = Handle.putChunk stdout
 -- /Pre-release/
 --
 {-# INLINE putS #-}
-putS :: (MonadIO m, ToStream m a Char) => a -> m ()
-putS x = putChunk =<< Array.fromStream (Unicode.encodeUtf8 $ toStream x)
+putS :: (MonadIO m, IsUnfold m a Char) => a -> m ()
+putS x = putChunk =<< Array.fromStream (Unicode.encodeUtf8 $ Stream.unfold generator x)
 
 -- | Write a character on console.
 --
@@ -282,7 +282,7 @@ putC = liftIO . putChar
 -- /Pre-release/
 --
 {-# INLINE putL #-}
-putL :: (MonadIO m, ToStream m a Char) => a -> m ()
+putL :: (MonadIO m, IsUnfold m a Char) => a -> m ()
 putL x = putS x >> putC '\n'
 
 -- | Fold a stream of 'Word8' to standard output.
@@ -317,8 +317,8 @@ putBytes = Handle.putBytes stdout
 -- /Pre-release/
 --
 {-# INLINE putChars #-}
-putChars :: (MonadIO m, ToStream m a Char) => a -> m ()
-putChars = putBytes . Unicode.encodeUtf8 . toStream
+putChars :: (MonadIO m, IsUnfold m a Char) => a -> m ()
+putChars = putBytes . Unicode.encodeUtf8 . Stream.unfold generator
 
 -- | Fold a stream of @Array Word8@ to standard output.
 --
@@ -360,10 +360,10 @@ putChunks = Handle.putChunks stdout
 -- /Pre-release/
 --
 {-# INLINE putStringsWith #-}
-putStringsWith :: (MonadIO m, ToStream m a Char)
+putStringsWith :: (MonadIO m, IsUnfold m a Char)
     => (SerialT m Char -> SerialT m Word8) -> SerialT m a -> m ()
 putStringsWith encode =
-    putChunks . Serial.mapM (Array.fromStream . encode . toStream)
+    putChunks . Serial.mapM (Array.fromStream . encode . Stream.unfold generator)
 
 -- | Write a stream of strings to standard output using UTF8 encoding.  Output
 -- is flushed to the device for each string.
@@ -373,7 +373,7 @@ putStringsWith encode =
 -- /Pre-release/
 --
 {-# INLINE putStrings #-}
-putStrings :: (MonadIO m, ToStream m a Char) => SerialT m a -> m ()
+putStrings :: (MonadIO m, IsUnfold m a Char) => SerialT m a -> m ()
 putStrings = putStringsWith Unicode.encodeUtf8
 
 -- | Like 'putStrings' but adds a newline at the end of each string.
@@ -383,8 +383,8 @@ putStrings = putStringsWith Unicode.encodeUtf8
 -- /Pre-release/
 --
 {-# INLINE putLines #-}
-putLines :: (MonadIO m, ToStream m a Char) => SerialT m a -> m ()
+putLines :: (MonadIO m, IsUnfold m a Char) => SerialT m a -> m ()
 putLines =
       putChunks
     . Stream.intersperseSuffix (return $ Array.fromList [10])
-    . Serial.mapM (Array.fromStream . Unicode.encodeUtf8 . toStream)
+    . Serial.mapM (Array.fromStream . Unicode.encodeUtf8 . Stream.unfold generator)
