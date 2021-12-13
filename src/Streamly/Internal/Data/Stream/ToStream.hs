@@ -65,6 +65,12 @@ class IsUnfold m a b where
     generator :: (Monad m, Storable b) => Unfold m a b
 
 instance IsUnfold m (SerialT m a) a where
+    -- XXX Fold.toStream uses two different monads for the fold and the stream,
+    -- so we could detach the stream monad from the folds monad and that way we
+    -- can remove the monad parameter from the IsFold type class. But that is
+    -- not the case for unfolds. We cannot detach the two monads in
+    -- Unfold.fromStream. Is it possible? We can use "SerialT Identity a"
+    -- though.
     generator = Unfold.fromStream
 
 instance IsUnfold m [a] a where
