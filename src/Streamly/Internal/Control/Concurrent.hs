@@ -29,6 +29,9 @@ import Data.Functor (void)
 import GHC.Conc (ThreadId(..))
 import GHC.Exts
 import GHC.IO (IO(..))
+#if __GLASGOW_HASKELL__ >= 903
+import GHC.IO (unIO)
+#endif
 import System.Mem.Weak (addFinalizer)
 
 -- /Since: 0.8.0 ("Streamly.Prelude")/
@@ -62,7 +65,13 @@ captureMonadState = control $ \run -> run (return $ RunInIO run)
 {-# INLINE rawForkIO #-}
 rawForkIO :: IO () -> IO ThreadId
 rawForkIO action = IO $ \ s ->
-   case fork# action s of (# s1, tid #) -> (# s1, ThreadId tid #)
+   case fork#
+#if __GLASGOW_HASKELL__ >= 903
+           (unIO action)
+#else
+           action
+#endif
+          s of (# s1, tid #) -> (# s1, ThreadId tid #)
 
 -- | Fork a thread to run the given computation, installing the provided
 -- exception handler. Lifted to any monad with 'MonadBaseControl IO m'
