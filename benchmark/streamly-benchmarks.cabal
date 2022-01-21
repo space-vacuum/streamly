@@ -170,7 +170,7 @@ common bench-options
   include-dirs: .
   ghc-options: -rtsopts
   if flag(limit-build-mem)
-    ghc-options: +RTS -M512M -RTS
+    ghc-options: +RTS -M3500M -RTS
   build-depends: streamly-benchmarks == 0.0.0
 
 -- Some benchmarks are threaded some are not
@@ -180,7 +180,7 @@ common bench-options-threaded
   -- trigger only with these options.
   ghc-options: -threaded -rtsopts -with-rtsopts "-N2"
   if flag(limit-build-mem)
-    ghc-options: +RTS -M512M -RTS
+    ghc-options: +RTS -M3500M -RTS
   build-depends: streamly-benchmarks == 0.0.0
 
 -------------------------------------------------------------------------------
@@ -209,8 +209,7 @@ benchmark Prelude.Serial
     if flag(dev)
       ghc-options: +RTS -M3500M -RTS
     else
-      ghc-options: +RTS -M2000M -RTS
-
+      ghc-options: +RTS -M3500M -RTS
 
 benchmark Prelude.WSerial
   import: bench-options
@@ -254,7 +253,7 @@ benchmark Prelude.ZipAsync
   else
     buildable: True
   if flag(limit-build-mem)
-    ghc-options: +RTS -M1000M -RTS
+    ghc-options: +RTS -M3500M -RTS
 
 
 benchmark Prelude.Ahead
@@ -297,7 +296,7 @@ benchmark Prelude.Parallel
   else
     buildable: True
   if flag(limit-build-mem)
-    ghc-options: +RTS -M2000M -RTS
+    ghc-options: +RTS -M3500M -RTS
 
 
 benchmark Data.Unfold
@@ -334,7 +333,7 @@ benchmark Data.Parser.ParserD
     if flag(dev)
       ghc-options: +RTS -M3000M -RTS
     else
-      ghc-options: +RTS -M750M -RTS
+      ghc-options: +RTS -M3500M -RTS
 
 benchmark Data.Parser.ParserK
   import: bench-options
@@ -377,7 +376,7 @@ benchmark Data.Parser
     if flag(dev)
       ghc-options: +RTS -M3000M -RTS
     else
-      ghc-options: +RTS -M1000M -RTS
+      ghc-options: +RTS -M3500M -RTS
 
 -------------------------------------------------------------------------------
 -- Raw Streams
@@ -483,7 +482,7 @@ benchmark Data.Array.Foreign
   type: exitcode-stdio-1.0
   main-is: Streamly/Benchmark/Data/Array/Foreign.hs
   if flag(limit-build-mem)
-    ghc-options: +RTS -M1000M -RTS
+    ghc-options: +RTS -M3500M -RTS
 
 benchmark Data.Array.Foreign.Mut
   import: bench-options
