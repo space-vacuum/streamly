@@ -65,6 +65,7 @@ bench_rts_options () {
     Prelude.Rate/o-1-space/asyncly/*) echo -n "-K128K" ;;
 
     # XXX For GHC-9.0
+    Prelude.Serial/o-1-space/elimination/showsPrec) echo -n "-M32M" ;;
     Prelude.Serial/o-1-space/mixed/sum-product-fold) echo -n "-K64M" ;;
 
     # XXX These should be moved to o-n-space?
@@ -84,6 +85,8 @@ bench_rts_options () {
 
     Prelude.Async/o-n-space/monad-outer-product/*) echo -n "-K4M" ;;
     Prelude.Ahead/o-n-space/monad-outer-product/*) echo -n "-K4M" ;;
+    # XXX For GHC-9.0
+    Prelude.Ahead/o-1-space/monad-outer-product/*) echo -n "-M32M" ;;
     Prelude.Ahead/o-1-space/*) echo -n "-K128K" ;;
 
     Prelude.WAsync/o-n-heap/monad-outer-product/toNull3) echo -n "-M64M" ;;
@@ -105,11 +108,21 @@ bench_rts_options () {
     Data.SmallArray/o-1-sp*) echo -n "-K128K" ;;
     # For tasty-bench
     Data.Array*/o-1-space/generation/show) echo -n "-M32M" ;;
+    # XXX For GHC-9.0
+    Data.Array*/o-1-space/generation/read) echo -n "-M32M" ;;
+    Data.Array.Foreign/o-1-space/generation/fromList*) echo -n "-M32M" ;;
+    Data.Array.Foreign/o-1-space/generation/writeN*) echo -n "-M32M" ;;
     # XXX For GHC-8.10
     Data.Array/o-1-space/transformationX4/map) echo -n "-M32M" ;;
     # DEVBUILD only benchmarks - array foldable instance
     Data.Array.Foreign/o-1-space/elimination/foldable/foldl*) echo -n "-K8M" ;;
     Data.Array.Foreign/o-1-space/elimination/foldable/sum) echo -n "-K8M" ;;
+
+    # XXX Added for GHC-9
+    Unicode.Char/o-1-space/NFD/Japanese) echo -n "-M32M" ;;
+    Unicode.Char/o-1-space/NFKD/Japanese) echo -n "-M32M" ;;
+    Unicode.Char/o-1-space/NFC/Japanese) echo -n "-M32M" ;;
+    Unicode.Char/o-1-space/NFKC/Japanese) echo -n "-M32M" ;;
     *) echo -n "" ;;
   esac
 }
