@@ -263,9 +263,12 @@ o_n_heap_concat value =
             "concatPairsWithInterleave (sqrtVal of sqrtVal)"
             (concatPairsWithInterleave sqrtVal sqrtVal)
 
+        -- This is quadratic
+        {-
         , benchIOSrc1
             "concatPairsWithInterleaveSuffix (n of 1)"
             (concatPairsWithInterleaveSuffix value 1)
+        -}
         , benchIOSrc1
             "concatPairsWithInterleaveSuffix (sqrtVal of sqrtVal)"
             (concatPairsWithInterleaveSuffix sqrtVal sqrtVal)
