@@ -37,6 +37,17 @@ jobs:
         ghc-version: 8.8.3
         cabal-version: 3.2
 
+    # Caching isn't currently supported for the workflow_dispatch event.
+    # The following block is essentually dumb and will result in a warning.
+    - uses: actions/cache@v1
+      name: Cache ~/.cabal and bench-report
+      with:
+        path: |
+            ~/.cabal
+            ./benchmark/bench-report/bin/bench-report
+        # Bump the key version to clear the cache
+        key: cache-v1
+
     # -----------------------------------------------------------------
     # -- Generate reports for the base branch and upload
     # -----------------------------------------------------------------
