@@ -1,20 +1,7 @@
 name: Regression checking
 
-on:
-  workflow_call:
-    inputs:
-      benchmarks:
-        description: '--benchmarks'
-        required: false
-        default: ""
-      fields:
-        description: '--fields'
-        required: false
-        default: "allocated"
-      diff-cutoff-percent:
-        description: '--diff-cutoff-percent'
-        required: false
-        default: 3
+on: pull_request
+
 
 # References:
 # https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow
@@ -26,9 +13,34 @@ jobs:
   check-regressions:
     env:
       BENCH_SH: bin/bench.sh
-      BENCHMARKS: ${{ github.event.inputs.benchmarks }}
-      FIELDS: ${{ github.event.inputs.fields }}
-      DIFF_CUTOFF_PERCENT: ${{ github.event.inputs.diff-cutoff-percent }}
+      BENCHMARKS: >-
+        Data.Array
+        Data.Array.Foreign
+        Data.Array.Prim
+        Data.Array.Prim.Pinned
+        Data.Fold
+        Data.Parser
+        Data.Parser.ParserD
+        Data.Parser.ParserK
+        Data.SmallArray
+        Data.Stream.StreamD
+        Data.Stream.StreamDK
+        Data.Stream.StreamK
+        Data.Unfold
+        FileSystem.Handle
+        Prelude.Ahead
+        Prelude.Async
+        Prelude.Parallel
+        Prelude.Serial
+        Prelude.WAsync
+        Prelude.WSerial
+        Prelude.ZipAsync
+        Prelude.ZipSerial
+        Unicode.Char
+        Unicode.Stream
+        Unicode.Utf8
+      FIELDS: allocated
+      DIFF_CUTOFF_PERCENT: 3
 
     runs-on: ubuntu-latest
 
