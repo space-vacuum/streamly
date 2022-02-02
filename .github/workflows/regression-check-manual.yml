@@ -1,0 +1,25 @@
+name: Regression checking - Manual
+
+on:
+  workflow_dispatch:
+    inputs:
+      benchmarks:
+        description: '--benchmarks'
+        required: false
+        default: ""
+      fields:
+        description: '--fields'
+        required: false
+        default: "allocated"
+      diff-cutoff-percent:
+        description: '--diff-cutoff-percent'
+        required: false
+        default: 3
+
+jobs:
+  check-regressions:
+    uses: ./.github/workflows/regression-check
+    with:
+      benchmarks: ${{ github.event.inputs.benchmarks }}
+      fields: allocated ${{ github.event.inputs.fields }}
+      diff-cutoff-percent: ${{ github.event.inputs.diff-cutoff-percent }}
