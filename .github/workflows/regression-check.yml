@@ -14,12 +14,12 @@ on:
       diff-cutoff-percent:
         description: '--diff-cutoff-percent'
         required: false
-        default: 50
+        default: 3
   pull_request:
     with:
       benchmarks: ""
-      fields: "cputime allocated"
-      diff-cutoff-percent: 40
+      fields: "allocated"
+      diff-cutoff-percent: 3
 
 # References:
 # https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow
