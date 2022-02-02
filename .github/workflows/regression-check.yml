@@ -52,9 +52,7 @@ jobs:
         ghc-version: 8.8.3
         cabal-version: 3.2
 
-    # Caching isn't currently supported for the workflow_dispatch event.
-    # The following block is essentually dumb and will result in a warning.
-    - uses: actions/cache@v1
+    - uses: actions/cache@v2
       name: Cache ~/.cabal and bench-report
       with:
         path: |
@@ -63,19 +61,33 @@ jobs:
         # Bump the key version to clear the cache
         key: cache-v1
 
+    - name: Cache charts from master
+      id: cache-charts-master
+      uses: actions/cache@v2
+      with:
+        path: charts-master
+        # Bump the key version to clear the cache
+        key: charts-master-v1
+
     # -----------------------------------------------------------------
     # -- Generate reports for the base branch and upload
     # -----------------------------------------------------------------
 
     - name: Checkout the base branch
+      if: steps.cache-charts-master.outputs.cache-hit != 'true'
       uses: actions/checkout@v2
       with:
         ref: master
 
     - name: Run benchmarks
+      if: steps.cache-charts-master.outputs.cache-hit != 'true'
       run: |
         chmod +x $BENCH_SH
         $BENCH_SH --benchmarks "$BENCHMARKS" --raw
+
+    - name: Move charts to charts-master
+      if: steps.cache-charts-master.outputs.cache-hit != 'true'
+      run: mv charts charts-master
 
     # -----------------------------------------------------------------
     # -- Download, generate reports for the current branch and append
@@ -85,6 +97,9 @@ jobs:
       uses: actions/checkout@v2
       with:
         clean: false
+
+    - name: Copy charts-master to charts
+      run: cp -r charts-master charts
 
     - name: Run benchmarks and append
       run: |
