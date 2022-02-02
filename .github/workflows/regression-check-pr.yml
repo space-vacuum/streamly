@@ -1,0 +1,36 @@
+name: Regression checking - PR
+
+on: pull_request
+
+jobs:
+  check-regressions:
+    uses: ./.github/workflows/regression-check.yml
+    with:
+      benchmarks: >-
+        Data.Array
+        Data.Array.Foreign
+        Data.Array.Prim
+        Data.Array.Prim.Pinned
+        Data.Fold
+        Data.Parser
+        Data.Parser.ParserD
+        Data.Parser.ParserK
+        Data.SmallArray
+        Data.Stream.StreamD
+        Data.Stream.StreamDK
+        Data.Stream.StreamK
+        Data.Unfold
+        FileSystem.Handle
+        Prelude.Ahead
+        Prelude.Async
+        Prelude.Parallel
+        Prelude.Serial
+        Prelude.WAsync
+        Prelude.WSerial
+        Prelude.ZipAsync
+        Prelude.ZipSerial
+        Unicode.Char
+        Unicode.Stream
+        Unicode.Utf8
+      fields: allocated
+      diff-cutoff-percent: 3
