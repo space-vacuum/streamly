@@ -1,7 +1,7 @@
 name: Regression checking
 
 on:
-  workflow_dispatch:
+  workflow_call:
     inputs:
       benchmarks:
         description: '--benchmarks'
@@ -15,14 +15,12 @@ on:
         description: '--diff-cutoff-percent'
         required: false
         default: 3
-  pull_request:
-    with:
-      benchmarks: ""
-      fields: "allocated"
-      diff-cutoff-percent: 3
 
 # References:
 # https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow
+# https://docs.github.com/en/actions/using-workflows/reusing-workflows#reusable-workflows-and-starter-workflows
+# https://docs.github.com/en/actions/using-workflows/workflow-syntax-for-github-actions#onworkflow_call
+# https://docs.github.com/en/actions/learn-github-actions/contexts#about-contexts-and-expressions
 
 jobs:
   check-regressions:
