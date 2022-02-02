@@ -319,3 +319,55 @@ dependencies. May show additional ghc boot libraries.
 ```
 $ nix-shell --run "ghc-pkg dot | dot -Tpdf > streamly.pdf"
 ```
+
+## Regression checking
+
+Please note that you'll need to first go through the `gh auth login` workflow
+and make sure you have the required permissions to the repository.
+
+The following command can be used to run a regression check workflow,
+
+```
+gh workflow run regression-check.yml \
+    -f benchmarks=<benchmarks> \
+    -f fields=<fields> \
+    -f diff-cutoff-percent=<diff-cutoff-percent> \
+    -r <branch>
+```
+
+Example,
+
+The following command runs the workflow for `Data.Array` and
+`Data.Array.Foreign` on branch `array-refactor`, scrutinizing the fields
+`cputime` and `bytescopied`, for any benchmarks that have regressed beyond 35
+percent.
+
+```
+gh workflow run regression-check.yml \
+    -f benchmarks="Data.Array Data.Array.Foreign" \
+    -f fields="cputime bytescopied" \
+    -f diff-cutoff-percent=35 \
+    -r array-refactor
+```
+
+Omitting `-f benchmarks=<benchmarks>` has the effect of checking regression for
+all the benchmark targets available.
+
+By default, we always compare the benchmarks with the `master` branch.
+
+You can also run the workflow from your browser, See the following link for more
+info:
+
+https://docs.github.com/en/actions/managing-workflow-runs/manually-running-a-workflow
+
+### On foreign forks
+
+We cannot run this regression workflow on pull requests from foreign forks
+directly.
+
+To do so, we'll first need to manually fetch that branch into the main repo and
+then run the workflow accordingly.
+
+We can probably deligate this to a github bot or improve the workflow to be
+dispatched on a pull request with certain conditions (like having a specific
+tag).
