@@ -2,7 +2,6 @@
 .ghci
 .github/workflows/haskell.yml
 .github/workflows/regression-check.yml
-.github/workflows/regression-check-manual.yml
 .gitignore
 .hlint.ignore
 .hlint.yaml
