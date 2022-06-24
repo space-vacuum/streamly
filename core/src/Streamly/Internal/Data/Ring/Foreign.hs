@@ -400,12 +400,12 @@ cast arr =
 -- the ring buffer. This is unsafe because the ringHead Ptr is not checked to
 -- be in range.
 {-# INLINE unsafeEqArrayN #-}
-unsafeEqArrayN :: Ring a -> Ptr a -> A.Array a -> Int -> Bool
-unsafeEqArrayN Ring{..} rh A.Array{..} n =
-    let !res = unsafeInlineIO $ do
+unsafeEqArrayN :: forall a. Storable a => Ring a -> Ptr a -> A.Array a -> Int -> Bool
+unsafeEqArrayN Ring{..} rh arr@(A.Array{..}) n =
+    let !res = unsafeInlineIO $ A.asPtrUnsafe arr $ \ptr -> do
             let rs = unsafeForeignPtrToPtr ringStart
-                as = arrStart
-            assert (aEnd `minusPtr` as >= ringBound `minusPtr` rs) (return ())
+                as = ptr
+            assert ((aEnd - arrStart) * SIZE_OF(a) >= ringBound `minusPtr` rs) (return ())
             let len = ringBound `minusPtr` rh
             r1 <- memcmp (castPtr rh) (castPtr as) (min len n)
             r2 <- if n > len
@@ -426,12 +426,12 @@ unsafeEqArrayN Ring{..} rh A.Array{..} n =
 -- supplied array must be equal to or bigger than the ringBuffer, ARRAY BOUNDS
 -- ARE NOT CHECKED.
 {-# INLINE unsafeEqArray #-}
-unsafeEqArray :: Ring a -> Ptr a -> A.Array a -> Bool
-unsafeEqArray Ring{..} rh A.Array{..} =
-    let !res = unsafeInlineIO $ do
+unsafeEqArray :: forall a. Storable a => Ring a -> Ptr a -> A.Array a -> Bool
+unsafeEqArray Ring{..} rh arr@(A.Array{..}) =
+    let !res = unsafeInlineIO $ A.asPtrUnsafe arr $ \ptr -> do
             let rs = unsafeForeignPtrToPtr ringStart
-            let as = arrStart
-            assert (aEnd `minusPtr` as >= ringBound `minusPtr` rs)
+            let as = ptr
+            assert ((aEnd - arrStart) * SIZE_OF(a) >= ringBound `minusPtr` rs)
                    (return ())
             let len = ringBound `minusPtr` rh
             r1 <- memcmp (castPtr rh) (castPtr as) len
