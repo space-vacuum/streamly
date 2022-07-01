@@ -1,3 +1,4 @@
+
 {-# LANGUAGE CPP #-}
 
 #include "Streamly/Benchmark/Data/Array/CommonImports.hs"

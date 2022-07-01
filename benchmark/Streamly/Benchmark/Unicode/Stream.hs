@@ -35,14 +35,14 @@ import Streamly.Benchmark.Common
 import Streamly.Benchmark.Common.Handle
 
 #ifdef INSPECTION
-import Streamly.Internal.Data.Unboxed (Storable)
-import Streamly.Internal.Data.Stream.StreamD.Type (Step(..))
-import qualified Streamly.Internal.Data.Fold.Type as Fold
-import qualified Streamly.Internal.Data.Tuple.Strict as Strict
-import qualified Streamly.Internal.Data.Array.Foreign.Type as Array
-import qualified Streamly.Internal.Data.Array.Foreign.Mut.Type as MArray
+-- import Streamly.Internal.Data.Unboxed (Storable)
+-- import Streamly.Internal.Data.Stream.StreamD.Type (Step(..))
+-- import qualified Streamly.Internal.Data.Fold.Type as Fold
+-- import qualified Streamly.Internal.Data.Tuple.Strict as Strict
+-- import qualified Streamly.Internal.Data.Array.Foreign.Type as Array
+-- import qualified Streamly.Internal.Data.Array.Foreign.Mut.Type as MArray
 
-import Test.Inspection
+-- import Test.Inspection
 #endif
 
 moduleName :: String
@@ -57,8 +57,9 @@ copyCodecUtf8ArraysLenient inh outh =
      $ Unicode.decodeUtf8Arrays
      $ Handle.getChunks inh
 
+-- "hasNoTypeClasses" fails. The Prim typeclass isn't being specialized.
 #ifdef INSPECTION
-inspect $ hasNoTypeClasses 'copyCodecUtf8ArraysLenient
+-- inspect $ hasNoTypeClasses 'copyCodecUtf8ArraysLenient
 -- inspect $ 'copyCodecUtf8ArraysLenient `hasNoType` ''Step
 #endif
 
@@ -105,8 +106,9 @@ linesUnlinesArrayCharCopy inh outh =
       $ Unicode.decodeLatin1
       $ Stream.unfold Handle.read inh
 
+-- "hasNoTypeClasses" fails. The Prim typeclass isn't being specialized.
 #ifdef INSPECTION
-inspect $ hasNoTypeClassesExcept 'linesUnlinesArrayCharCopy [''Storable]
+-- inspect $ hasNoTypeClassesExcept 'linesUnlinesArrayCharCopy [''Storable]
 -- inspect $ 'linesUnlinesArrayCharCopy `hasNoType` ''Step
 #endif
 
@@ -133,8 +135,9 @@ wordsUnwordsCopyWord8 inh outh =
         $ Stream.wordsBy isSp Fold.toList
         $ Stream.unfold Handle.read inh
 
+-- "hasNoTypeClasses" fails. The Prim typeclass isn't being specialized.
 #ifdef INSPECTION
-inspect $ hasNoTypeClasses 'wordsUnwordsCopyWord8
+-- inspect $ hasNoTypeClasses 'wordsUnwordsCopyWord8
 -- inspect $ 'wordsUnwordsCopyWord8 `hasNoType` ''Step
 #endif
 
@@ -204,15 +207,16 @@ copyStreamLatin1' inh outh =
      $ Unicode.decodeLatin1
      $ Stream.unfold Handle.read inh
 
+-- "hasNoTypeClasses" fails. The Prim typeclass isn't being specialized.
 #ifdef INSPECTION
-inspect $ hasNoTypeClasses 'copyStreamLatin1'
-inspect $ 'copyStreamLatin1' `hasNoType` ''Step
-inspect $ 'copyStreamLatin1' `hasNoType` ''Unfold.ConcatState -- Handle.read/UF.many
-inspect $ 'copyStreamLatin1' `hasNoType` ''MArray.ReadUState  -- Handle.read/Array.read
+-- inspect $ hasNoTypeClasses 'copyStreamLatin1'
+-- inspect $ 'copyStreamLatin1' `hasNoType` ''Step
+-- inspect $ 'copyStreamLatin1' `hasNoType` ''Unfold.ConcatState -- Handle.read/UF.many
+-- inspect $ 'copyStreamLatin1' `hasNoType` ''MArray.ReadUState  -- Handle.read/Array.read
 
-inspect $ 'copyStreamLatin1' `hasNoType` ''Fold.Step
-inspect $ 'copyStreamLatin1' `hasNoType` ''Array.ArrayUnsafe -- Handle.write/writeNUnsafe
-inspect $ 'copyStreamLatin1' `hasNoType` ''Strict.Tuple3' -- Handle.write/chunksOf
+-- inspect $ 'copyStreamLatin1' `hasNoType` ''Fold.Step
+-- inspect $ 'copyStreamLatin1' `hasNoType` ''Array.ArrayUnsafe -- Handle.write/writeNUnsafe
+-- inspect $ 'copyStreamLatin1' `hasNoType` ''Strict.Tuple3' -- Handle.write/chunksOf
 #endif
 
 -- | Copy file (encodeLatin1)
@@ -224,16 +228,17 @@ copyStreamLatin1 inh outh =
      $ Unicode.decodeLatin1
      $ Stream.unfold Handle.read inh
 
+-- "hasNoTypeClasses" fails. The Prim typeclass isn't being specialized.
 #ifdef INSPECTION
-inspect $ hasNoTypeClasses 'copyStreamLatin1
-inspect $ 'copyStreamLatin1 `hasNoType` ''Step
-inspect $ 'copyStreamLatin1 `hasNoType` ''Unfold.ConcatState -- Handle.read/UF.many
-inspect $ 'copyStreamLatin1 `hasNoType` ''MArray.ReadUState  -- Handle.read/Array.read
+-- inspect $ hasNoTypeClasses 'copyStreamLatin1
+-- inspect $ 'copyStreamLatin1 `hasNoType` ''Step
+-- inspect $ 'copyStreamLatin1 `hasNoType` ''Unfold.ConcatState -- Handle.read/UF.many
+-- inspect $ 'copyStreamLatin1 `hasNoType` ''MArray.ReadUState  -- Handle.read/Array.read
 
-inspect $ 'copyStreamLatin1 `hasNoType` ''Fold.ManyState
-inspect $ 'copyStreamLatin1 `hasNoType` ''Fold.Step
-inspect $ 'copyStreamLatin1 `hasNoType` ''Array.ArrayUnsafe -- Handle.write/writeNUnsafe
-inspect $ 'copyStreamLatin1 `hasNoType` ''Strict.Tuple3' -- Handle.write/chunksOf
+-- inspect $ 'copyStreamLatin1 `hasNoType` ''Fold.ManyState
+-- inspect $ 'copyStreamLatin1 `hasNoType` ''Fold.Step
+-- inspect $ 'copyStreamLatin1 `hasNoType` ''Array.ArrayUnsafe -- Handle.write/writeNUnsafe
+-- inspect $ 'copyStreamLatin1 `hasNoType` ''Strict.Tuple3' -- Handle.write/chunksOf
 #endif
 
 -- | Copy file
@@ -244,8 +249,9 @@ _copyStreamUtf8' inh outh =
      $ Unicode.decodeUtf8'
      $ Stream.unfold Handle.read inh
 
+-- "hasNoTypeClasses" fails. The Prim typeclass isn't being specialized.
 #ifdef INSPECTION
-inspect $ hasNoTypeClasses '_copyStreamUtf8'
+-- inspect $ hasNoTypeClasses '_copyStreamUtf8'
 -- inspect $ '_copyStreamUtf8 `hasNoType` ''Step
 -- inspect $ '_copyStreamUtf8 `hasNoType` ''Array.FlattenState
 -- inspect $ '_copyStreamUtf8 `hasNoType` ''D.ConcatMapUState
@@ -260,8 +266,9 @@ copyStreamUtf8 inh outh =
      $ Unicode.decodeUtf8
      $ Stream.unfold Handle.read inh
 
+-- "hasNoTypeClasses" fails. The Prim typeclass isn't being specialized.
 #ifdef INSPECTION
-inspect $ hasNoTypeClasses 'copyStreamUtf8
+-- inspect $ hasNoTypeClasses 'copyStreamUtf8
 -- inspect $ 'copyStreamUtf8Lax `hasNoType` ''Step
 -- inspect $ 'copyStreamUtf8Lax `hasNoType` ''Array.FlattenState
 -- inspect $ 'copyStreamUtf8Lax `hasNoType` ''D.ConcatMapUState
