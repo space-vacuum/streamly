@@ -154,6 +154,16 @@ DERIVE_UNBOXED
     , readWord64OffAddr#
     , writeWord64OffAddr#)
 
+DERIVE_UNBOXED
+    ( Double
+    , D#
+    , SIZEOF_HSDOUBLE
+    , ALIGNMENT_HSDOUBLE
+    , readDoubleArray#
+    , writeDoubleArray#
+    , readDoubleOffAddr#
+    , writeDoubleOffAddr#)
+
 instance Unboxed Bool where
     {-# INLINE sizeOf #-}
     sizeOf _ = sizeOf (undefined :: Int)
