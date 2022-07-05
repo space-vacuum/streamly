@@ -15,19 +15,20 @@ module Streamly.Internal.Data.Unboxed
     , getInternalMutableByteArray
     ) where
 
+#include "MachDeps.h"
+
 #include "ArrayMacros.h"
 
-import GHC.Base (IO(..), MutableByteArray#, RealWorld, touch#)
-import GHC.Ptr (Ptr(..))
+import GHC.Exts
+import GHC.Base (IO(..))
+import GHC.Word (Word8(..), Word64(..))
+import Foreign.Ptr (castPtr)
 
 #ifdef USE_STORABLE
 import Foreign.Storable (Storable(..))
 import GHC.Exts (byteArrayContents#, unsafeCoerce#)
-#else
-import Data.Int (Int8)
-import Data.Primitive.Types (Prim(..), sizeOf, alignment)
-import GHC.Base (Int(..))
 #endif
+
 
 #ifdef USE_FOREIGN_PTR
 newtype ArrayContents a = ArrayContents Addr# ForeignPtrContents
@@ -35,6 +36,86 @@ newtype ArrayContents a = ArrayContents Addr# ForeignPtrContents
 #else
 -- XXX can use UnliftedNewtypes
 data ArrayContents a = ArrayContents !(MutableByteArray# RealWorld)
+
+class Unboxed a where
+    sizeOf :: a -> Int
+    alignment :: a -> Int
+    readByteArray :: ArrayContents a -> Int -> IO a
+    writeByteArray :: ArrayContents a -> Int -> a -> IO ()
+    readOffPtr :: Ptr a -> Int -> IO a
+    writeOffPtr :: Ptr a -> Int -> a -> IO ()
+
+#define DERIVE_UNBOXED(_type, _constructor, _sizeOf, _alignment, _readArray, _writeArray, _readAddr, _writeAddr) \
+instance Unboxed _type where {                                     \
+  {-# INLINE sizeOf #-}                                            \
+; sizeOf _ = _sizeOf                                               \
+; {-# INLINE alignment #-}                                         \
+; alignment _ = _alignment                                         \
+; {-# INLINE readByteArray #-}                                     \
+; readByteArray (ArrayContents mbarr) (I# n) = IO $ \s ->          \
+      case _readArray mbarr n s of                                 \
+          { (# s1, i #) -> (# s1, _constructor i #) }              \
+; {-# INLINE writeByteArray #-}                                    \
+; writeByteArray (ArrayContents mbarr) (I# n) (_constructor val) = \
+        IO $ \s -> (# _writeArray mbarr n val s, () #)             \
+; {-# INLINE readOffPtr #-}                                        \
+; readOffPtr (Ptr addr) (I# n) = IO $ \s ->                        \
+      case _readAddr addr n s of                                   \
+          { (# s1, i #) -> (# s1, _constructor i #) }              \
+; {-# INLINE writeOffPtr #-}                                       \
+; writeOffPtr (Ptr addr) (I# n) (_constructor val) =               \
+     IO $ \s -> (# _writeAddr addr n val s, () #)                  \
+}
+
+DERIVE_UNBOXED
+    ( Char
+    , C#
+    , SIZEOF_HSCHAR
+    , ALIGNMENT_HSCHAR
+    , readCharArray#
+    , writeCharArray#
+    , readCharOffAddr#
+    , writeCharOffAddr#)
+
+DERIVE_UNBOXED
+    ( Int
+    , I#
+    , SIZEOF_HSINT
+    , ALIGNMENT_HSINT
+    , readIntArray#
+    , writeIntArray#
+    , readIntOffAddr#
+    , writeIntOffAddr#)
+
+DERIVE_UNBOXED
+    ( Word
+    , W#
+    , SIZEOF_HSWORD
+    , ALIGNMENT_HSWORD
+    , readWordArray#
+    , writeWordArray#
+    , readWordOffAddr#
+    , writeWordOffAddr#)
+
+DERIVE_UNBOXED
+    ( Word8
+    , W8#
+    , SIZEOF_WORD8
+    , ALIGNMENT_WORD8
+    , readWord8Array#
+    , writeWord8Array#
+    , readWord8OffAddr#
+    , writeWord8OffAddr#)
+
+DERIVE_UNBOXED
+    ( Word64
+    , W64#
+    , SIZEOF_WORD64
+    , ALIGNMENT_WORD64
+    , readWord64Array#
+    , writeWord64Array#
+    , readWord64OffAddr#
+    , writeWord64OffAddr#)
 
 {-# INLINE getInternalMutableByteArray #-}
 getInternalMutableByteArray :: ArrayContents a -> MutableByteArray# RealWorld
@@ -53,63 +134,47 @@ touch (ArrayContents contents) =
 #endif
 
 #ifndef USE_STORABLE
-type Storable = Prim
+type Storable = Unboxed
 
 {-# INLINE peek #-}
-peek :: Prim a => Ptr a -> IO a
-peek (Ptr addr#) = IO $ \s# -> readOffAddr# addr# 0# s#
+peek :: Unboxed a => Ptr a -> IO a
+peek ptr = readOffPtr ptr 0
 
 {-# INLINE poke #-}
-poke :: Prim a => Ptr a -> a -> IO ()
-poke (Ptr addr#) a = IO $ \s# -> (# writeOffAddr# addr# 0# a s#, () #)
+poke :: Unboxed a => Ptr a -> a -> IO ()
+poke ptr = writeOffPtr ptr 0
 
 {-# INLINE peekWith #-}
-peekWith :: Prim a => ArrayContents a -> Int -> IO a
-peekWith (ArrayContents mbarr#) (I# i#) = IO $ \s# -> readByteArray# mbarr# i# s#
+peekWith :: Unboxed a => ArrayContents a -> Int -> IO a
+peekWith = readByteArray
 
 {-# INLINE pokeWith #-}
-pokeWith :: Prim a => ArrayContents a -> Int -> a -> IO ()
-pokeWith (ArrayContents mbarr#) (I# i#) a =
-    IO $ \s# -> (# writeByteArray# mbarr# i# a s#, () #)
+pokeWith :: Unboxed a => ArrayContents a -> Int -> a -> IO ()
+pokeWith = writeByteArray
 
--- | Orphan Prim instance of Bool implemented using Int8
-instance Prim Bool where
-    {-# INLINE sizeOf# #-}
-    sizeOf# _ = sizeOf# (undefined :: Int8)
-    {-# INLINE alignment# #-}
-    alignment# _ = alignment# (undefined :: Int8)
-    {-# INLINE indexByteArray# #-}
-    indexByteArray# arr# i# = indexByteArray# arr# i# /= (0 :: Int8)
-    {-# INLINE readByteArray# #-}
-    readByteArray# arr# i# s# =
-        case readByteArray# arr# i# s# of
-            (# s1#, i :: Int8 #) -> (# s1#, i /= 0 #)
-    {-# INLINE writeByteArray# #-}
-    writeByteArray# arr# i# a s# =
+instance Unboxed Bool where
+    {-# INLINE sizeOf #-}
+    sizeOf _ = sizeOf (undefined :: Int)
+    {-# INLINE alignment #-}
+    alignment _ = alignment (undefined :: Int)
+    {-# INLINE readByteArray #-}
+    readByteArray arr i = do
+        res <- readByteArray (castContents arr) i
+        return $ res /= (0 :: Int)
+    {-# INLINE writeByteArray #-}
+    writeByteArray arr i a =
         case a of
-            True -> writeByteArray# arr# i# (1 :: Int8) s#
-            False -> writeByteArray# arr# i# (0 :: Int8) s#
-    {-# INLINE setByteArray# #-}
-    setByteArray# arr# off# len# a s# =
+            True -> writeByteArray (castContents arr) i (1 :: Int)
+            False -> writeByteArray (castContents arr) i (0 :: Int)
+    {-# INLINE readOffPtr #-}
+    readOffPtr ptr i = do
+        res <- readOffPtr (castPtr ptr) i
+        return $ res /= (0 :: Int)
+    {-# INLINE writeOffPtr #-}
+    writeOffPtr ptr i a =
         case a of
-            True -> setByteArray# arr# off# len# (1 :: Int8) s#
-            False -> setByteArray# arr# off# len# (0 :: Int8) s#
-    {-# INLINE indexOffAddr# #-}
-    indexOffAddr# addr# i# = indexOffAddr# addr# i# /= (0 :: Int8)
-    {-# INLINE readOffAddr# #-}
-    readOffAddr# addr# i# s# =
-        case readOffAddr# addr# i# s# of
-            (# s1#, i :: Int8 #) -> (# s1#, i /= 0 #)
-    {-# INLINE writeOffAddr# #-}
-    writeOffAddr# addr# i# a s# =
-        case a of
-            True -> writeOffAddr# addr# i# (1 :: Int8) s#
-            False -> writeOffAddr# addr# i# (0 :: Int8) s#
-    {-# INLINE setOffAddr# #-}
-    setOffAddr# addr# off# len# a s# =
-        case a of
-            True -> setOffAddr# addr# off# len# (1 :: Int8) s#
-            False -> setOffAddr# addr# off# len# (0 :: Int8) s#
+            True -> writeOffPtr (castPtr ptr) i (1 :: Int)
+            False -> writeOffPtr (castPtr ptr) i (0 :: Int)
 
 #else
 
