@@ -15,20 +15,36 @@ module Streamly.Internal.Data.Unboxed
     , getInternalMutableByteArray
     ) where
 
+#ifndef USE_STORABLE
 #include "MachDeps.h"
+#endif
 
 #include "ArrayMacros.h"
 
 import GHC.Exts
+
 import GHC.Base (IO(..))
+
+--------------------------------------------------------------------------------
+-- Imports for Unboxed
+--------------------------------------------------------------------------------
+
+#ifndef USE_STORABLE
 import GHC.Word (Word8(..), Word64(..))
 import Foreign.Ptr (castPtr)
+#endif
+
+--------------------------------------------------------------------------------
+-- Imports for Storable
+--------------------------------------------------------------------------------
 
 #ifdef USE_STORABLE
 import Foreign.Storable (Storable(..))
-import GHC.Exts (byteArrayContents#, unsafeCoerce#)
 #endif
 
+--------------------------------------------------------------------------------
+-- The ArrayContents type
+--------------------------------------------------------------------------------
 
 #ifdef USE_FOREIGN_PTR
 newtype ArrayContents a = ArrayContents Addr# ForeignPtrContents
@@ -37,6 +53,27 @@ newtype ArrayContents a = ArrayContents Addr# ForeignPtrContents
 -- XXX can use UnliftedNewtypes
 data ArrayContents a = ArrayContents !(MutableByteArray# RealWorld)
 
+{-# INLINE getInternalMutableByteArray #-}
+getInternalMutableByteArray :: ArrayContents a -> MutableByteArray# RealWorld
+getInternalMutableByteArray (ArrayContents mbarr) = mbarr
+
+{-# INLINE castContents #-}
+castContents :: ArrayContents a -> ArrayContents b
+castContents (ArrayContents mbarr) = ArrayContents mbarr
+
+{-# INLINE touch #-}
+touch :: ArrayContents a -> IO ()
+touch (ArrayContents contents) =
+    IO $ \s -> case touch# contents s of s' -> (# s', () #)
+
+#define UNPACKIF {-# UNPACK #-}
+#endif
+
+--------------------------------------------------------------------------------
+-- The Unboxed type class
+--------------------------------------------------------------------------------
+
+#ifndef USE_STORABLE
 class Unboxed a where
     sizeOf :: a -> Int
     alignment :: a -> Int
@@ -117,41 +154,6 @@ DERIVE_UNBOXED
     , readWord64OffAddr#
     , writeWord64OffAddr#)
 
-{-# INLINE getInternalMutableByteArray #-}
-getInternalMutableByteArray :: ArrayContents a -> MutableByteArray# RealWorld
-getInternalMutableByteArray (ArrayContents mbarr) = mbarr
-
-{-# INLINE castContents #-}
-castContents :: ArrayContents a -> ArrayContents b
-castContents (ArrayContents mbarr) = ArrayContents mbarr
-
-{-# INLINE touch #-}
-touch :: ArrayContents a -> IO ()
-touch (ArrayContents contents) =
-    IO $ \s -> case touch# contents s of s' -> (# s', () #)
-
-#define UNPACKIF {-# UNPACK #-}
-#endif
-
-#ifndef USE_STORABLE
-type Storable = Unboxed
-
-{-# INLINE peek #-}
-peek :: Unboxed a => Ptr a -> IO a
-peek ptr = readOffPtr ptr 0
-
-{-# INLINE poke #-}
-poke :: Unboxed a => Ptr a -> a -> IO ()
-poke ptr = writeOffPtr ptr 0
-
-{-# INLINE peekWith #-}
-peekWith :: Unboxed a => ArrayContents a -> Int -> IO a
-peekWith = readByteArray
-
-{-# INLINE pokeWith #-}
-pokeWith :: Unboxed a => ArrayContents a -> Int -> a -> IO ()
-pokeWith = writeByteArray
-
 instance Unboxed Bool where
     {-# INLINE sizeOf #-}
     sizeOf _ = sizeOf (undefined :: Int)
@@ -176,7 +178,39 @@ instance Unboxed Bool where
             True -> writeOffPtr (castPtr ptr) i (1 :: Int)
             False -> writeOffPtr (castPtr ptr) i (0 :: Int)
 
-#else
+#endif
+
+--------------------------------------------------------------------------------
+-- Combinators for Unboxed
+--------------------------------------------------------------------------------
+
+#ifndef USE_STORABLE
+
+type Storable = Unboxed
+
+{-# INLINE peek #-}
+peek :: Unboxed a => Ptr a -> IO a
+peek ptr = readOffPtr ptr 0
+
+{-# INLINE poke #-}
+poke :: Unboxed a => Ptr a -> a -> IO ()
+poke ptr = writeOffPtr ptr 0
+
+{-# INLINE peekWith #-}
+peekWith :: Unboxed a => ArrayContents a -> Int -> IO a
+peekWith = readByteArray
+
+{-# INLINE pokeWith #-}
+pokeWith :: Unboxed a => ArrayContents a -> Int -> a -> IO ()
+pokeWith = writeByteArray
+
+#endif
+
+--------------------------------------------------------------------------------
+-- Combinators for Storable
+--------------------------------------------------------------------------------
+
+#ifdef USE_STORABLE
 
 {-# INLINE peekWith #-}
 peekWith :: Storable a => ArrayContents a -> Int -> IO a
