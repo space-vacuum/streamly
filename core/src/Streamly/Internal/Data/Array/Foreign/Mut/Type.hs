@@ -374,6 +374,8 @@ data Array a =
 #ifdef DEVBUILD
     Storable a =>
 #endif
+    -- All offsets are from the start of arraycontents
+    -- The offsets are in terms of number of array elements and not bytes
     Array
     { arrContents :: UNPACKIF !(ArrayContents a)
     , arrStart :: {-# UNPACK #-} !Int      -- ^ offset
@@ -450,6 +452,8 @@ nil ::
 #endif
     Array a
 nil = Array nilArrayContents 0 0 0
+
+-- XXX need to be fixed.
 
 -- | @fromForeignPtrUnsafe foreignPtr end bound@ creates an 'Array' that starts
 -- at the memory pointed by the @foreignPtr@, @end@ is the first unused
@@ -806,7 +810,7 @@ roundDownTo elemSize size = size - (size `mod` elemSize)
 -- and then using writeN to the new array.
 --
 {-# NOINLINE reallocAligned #-}
-reallocAligned :: forall a. Storable a => Int -> Int -> Int -> Array a -> IO (Array a)
+reallocAligned :: Int -> Int -> Int -> Array a -> IO (Array a)
 reallocAligned elemSize alignSize newCapacityInBytes Array{..} = do
     assert (aEnd <= aBound) (return ())
 
@@ -815,17 +819,17 @@ reallocAligned elemSize alignSize newCapacityInBytes Array{..} = do
     (contents, pNew) <- newAlignedArrayContents newCapMaxInBytes alignSize
     let !(ArrayContents mbarrFrom#) = arrContents
         !(ArrayContents mbarrTo#) = contents
-        !(I# pNewInBytes#) = pNew * SIZE_OF(a)
+        !(I# pNewInBytes#) = pNew * elemSize
 
     -- Copy old data
     let oldStart = arrStart
-        !(I# oldStartInBytes#) = oldStart * SIZE_OF(a)
+        !(I# oldStartInBytes#) = oldStart * elemSize
         oldSize = aEnd - oldStart
-        oldSizeInBytes = oldSize * SIZE_OF(a)
+        oldSizeInBytes = oldSize * elemSize
         newCapInBytes = roundDownTo elemSize newCapMaxInBytes
-        newCap = newCapInBytes `div` SIZE_OF(a)
+        newCap = newCapInBytes `div` elemSize
         !newLenInBytes@(I# newLenInBytes#) = min oldSizeInBytes newCapInBytes
-        newLen = newLenInBytes `div` SIZE_OF(a)
+        newLen = newLenInBytes `div` elemSize
     assert (oldSizeInBytes `mod` elemSize == 0) (return ())
     assert (newLen >= 0) (return ())
     assert (newLenInBytes `mod` elemSize == 0) (return ())
