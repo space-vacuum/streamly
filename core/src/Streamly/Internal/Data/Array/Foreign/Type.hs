@@ -94,7 +94,7 @@ import GHC.Ptr (Ptr(..))
 import Streamly.Internal.Data.Array.Foreign.Mut.Type
     (ArrayContents, touch)
 import Streamly.Internal.Data.Fold.Type (Fold(..))
-import Streamly.Internal.Data.Stream.Serial (SerialT(..))
+import Streamly.Internal.Data.Stream.Serial (SerialT)
 import Streamly.Internal.Data.Unfold.Type (Unfold(..))
 import Text.Read (readPrec, readListPrec, readListPrecDefault)
 

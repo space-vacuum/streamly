@@ -25,7 +25,6 @@ where
 import Data.Semigroup (Semigroup(..))
 #endif
 import Streamly.Internal.Control.Concurrent (MonadAsync)
-import Streamly.Internal.Data.Stream.Serial (SerialT(..))
 import Streamly.Internal.Data.Stream.StreamK.Type (Stream)
 
 import qualified Streamly.Internal.Data.Stream.StreamK.Type as K

@@ -74,7 +74,7 @@ import Streamly.Internal.Data.Array.Foreign.Type (Array(..))
 import Streamly.Internal.Data.Array.Stream.Fold.Foreign (ArrayFold(..))
 import Streamly.Internal.Data.Fold.Type (Fold(..))
 import Streamly.Internal.Data.Parser (ParseError(..))
-import Streamly.Internal.Data.Stream.Serial (SerialT(..))
+import Streamly.Internal.Data.Stream.Serial (SerialT)
 import Streamly.Internal.Data.Stream.IsStream.Type
     (IsStream, fromStreamD, toStreamD)
 import Streamly.Internal.Data.SVar (adaptState, defState)

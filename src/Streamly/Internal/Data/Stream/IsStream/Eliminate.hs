@@ -166,7 +166,7 @@ import Streamly.Internal.Data.Stream.IsStream.Common
     , take , takeWhile, mkParallel)
 import Streamly.Internal.Data.Stream.IsStream.Type
     (IsStream, toStreamS, fromStreamD, toStreamD)
-import Streamly.Internal.Data.Stream.Serial (SerialT(..))
+import Streamly.Internal.Data.Stream.Serial (SerialT)
 
 import qualified Streamly.Internal.Data.Array.Foreign.Type as A
 import qualified Streamly.Internal.Data.Fold as FL

@@ -76,7 +76,7 @@ import Streamly.Internal.Data.Fold.Type (Fold (..))
 import Streamly.Internal.Data.Stream.IsStream.Combinators (maxYields)
 import Streamly.Internal.Data.Stream.IsStream.Type
     (IsStream(..), fromStreamD, toStreamD, fromStreamS, toStreamS)
-import Streamly.Internal.Data.Stream.Serial (SerialT(..))
+import Streamly.Internal.Data.Stream.Serial (SerialT)
 import Streamly.Internal.Data.Time.Units (AbsTime, RelTime64, addToAbsTime64)
 
 import qualified Streamly.Internal.Data.Array.Foreign.Type as A

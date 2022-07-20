@@ -311,7 +311,7 @@ import Streamly.Internal.Data.IsMap (IsMap(..))
 import Streamly.Internal.Data.Pipe.Type (Pipe (..), PipeState(..))
 import Streamly.Internal.Data.Unfold.Type (Unfold(..))
 import Streamly.Internal.Data.Tuple.Strict (Tuple'(..), Tuple3'(..))
-import Streamly.Internal.Data.Stream.Serial (SerialT(..))
+import Streamly.Internal.Data.Stream.Serial (SerialT)
 
 import qualified Data.IntSet as IntSet
 import qualified Data.Set as Set
@@ -346,7 +346,7 @@ import qualified Streamly.Internal.Data.Stream.Type as Stream
 -- >>> import qualified Streamly.Internal.Data.Fold.Window as FoldW
 -- >>> import qualified Streamly.Data.Array.Foreign as Array
 -- >>> import qualified Streamly.Internal.Data.Parser as Parser
--- >>> import Streamly.Internal.Data.Stream.Serial (SerialT(..))
+-- >>> import Streamly.Internal.Data.Stream.Serial (SerialT)
 -- >>> import Data.IORef (newIORef, readIORef, writeIORef)
 -- >>> import qualified Streamly.Internal.Data.Array.Foreign.Mut.Type as MA
 

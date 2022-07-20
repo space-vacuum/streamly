@@ -34,7 +34,7 @@ where
 
 import Control.Monad.IO.Class (MonadIO(..))
 import Streamly.Internal.Data.Unboxed (Storable)
-import Streamly.Internal.Data.Stream.Serial (SerialT(..))
+import Streamly.Internal.Data.Stream.Serial (SerialT)
 import Streamly.Internal.Data.Unfold.Type (Unfold(..))
 
 import qualified Streamly.Internal.Data.Stream.StreamD as D

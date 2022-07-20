@@ -61,7 +61,6 @@ import Streamly.Internal.Control.Concurrent
     (MonadRunInIO, MonadAsync, RunInIO(..), askRunInIO, restoreM)
 import Streamly.Internal.Data.Atomics
     (atomicModifyIORefCAS, atomicModifyIORefCAS_)
-import Streamly.Internal.Data.Stream.Serial (SerialT (..))
 import Streamly.Internal.Data.Stream.StreamK.Type (Stream)
 import Streamly.Internal.Data.Stream.SVar.Generate (fromSVar, fromSVarD)
 

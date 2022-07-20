@@ -69,7 +69,7 @@ import GHC.Exts (IsList(..), IsString(..))
 #if __GLASGOW_HASKELL__ < 808
 import Data.Semigroup (Semigroup(..))
 #endif
-import Streamly.Internal.Data.Stream.Serial (SerialT(..))
+import Streamly.Internal.Data.Stream.Serial (SerialT)
 import Streamly.Internal.Data.Stream.Zip (ZipSerialM(..))
 
 import qualified Streamly.Internal.Data.Stream.Serial as Serial

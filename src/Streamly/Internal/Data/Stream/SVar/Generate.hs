@@ -38,7 +38,7 @@ import Control.Monad.IO.Class (MonadIO(liftIO))
 import Data.IORef (newIORef, readIORef, mkWeakIORef, writeIORef)
 import Data.Maybe (isNothing)
 import Streamly.Internal.Control.Concurrent (MonadAsync, askRunInIO)
-import Streamly.Internal.Data.Stream.Serial (SerialT(..))
+import Streamly.Internal.Data.Stream.Serial (SerialT)
 import Streamly.Internal.Data.Time.Clock (Clock(Monotonic), getTime)
 import System.Mem (performMajorGC)
 

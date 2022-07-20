@@ -34,7 +34,7 @@ import Data.Bifunctor (first)
 import Streamly.Internal.Data.Unboxed (Storable, sizeOf)
 import Streamly.Internal.Data.Array.Foreign.Mut.Type (Array(..))
 import Streamly.Internal.Data.Fold.Type (Fold(..))
-import Streamly.Internal.Data.Stream.Serial (SerialT(..))
+import Streamly.Internal.Data.Stream.Serial (SerialT)
 import Streamly.Internal.Data.Tuple.Strict (Tuple'(..))
 
 import qualified Streamly.Internal.Data.Array.Foreign.Mut.Type as MArray
