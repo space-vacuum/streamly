@@ -37,6 +37,7 @@ import qualified Streamly.Internal.Data.Stream.SVar.Generate as SVar
 import Streamly.Internal.Data.SVar
 
 import Prelude hiding (map, repeat, zipWith, errorWithoutStackTrace)
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 #include "Instances.hs"
 
@@ -63,7 +64,7 @@ zipAsyncWithMK :: MonadAsync m
 zipAsyncWithMK f m1 m2 = K.mkStream $ \st yld sng stp -> do
     sv <- newParallelVar StopNone (adaptState st)
     SVar.toSVarParallel (adaptState st) sv $ D.fromStreamK m2
-    K.foldStream st yld sng stp $ K.zipWithM f m1 (getSerialT (SVar.fromSVar sv))
+    K.foldStream st yld sng stp $ K.zipWithM f m1 (Stream.toStreamK (SVar.fromSVar sv))
 
 -- XXX Should we rename this to zipParWith or zipParallelWith? This can happen
 -- along with the change of behvaior to end the stream concurrently.
@@ -122,10 +123,10 @@ consMZipAsync m (ZipAsyncM r) = ZipAsyncM $ K.consM m r
 
 instance Monad m => Functor (ZipAsyncM m) where
     {-# INLINE fmap #-}
-    fmap f (ZipAsyncM m) = ZipAsyncM $ getSerialT $ fmap f (SerialT m)
+    fmap f (ZipAsyncM m) = ZipAsyncM $ Stream.toStreamK $ fmap f (Stream.fromStreamK m)
 
 instance MonadAsync m => Applicative (ZipAsyncM m) where
-    pure = ZipAsyncM . getSerialT . Serial.repeat
+    pure = ZipAsyncM . Stream.toStreamK . Serial.repeat
 
     {-# INLINE (<*>) #-}
     ZipAsyncM m1 <*> ZipAsyncM m2 = ZipAsyncM $ zipAsyncWithK id m1 m2

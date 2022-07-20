@@ -70,6 +70,7 @@ import qualified Streamly.Internal.Data.Stream.StreamD.Type as D
 
 import Streamly.Internal.Data.SVar.Type
 import Streamly.Internal.Data.SVar
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 #include "Instances.hs"
 
@@ -545,7 +546,7 @@ newAsyncVar st m = do
 mkAsyncK :: MonadAsync m => Stream m a -> Stream m a
 mkAsyncK m = K.mkStream $ \st yld sng stp -> do
     sv <- newAsyncVar (adaptState st) m
-    K.foldStream st yld sng stp $ getSerialT $ fromSVar sv
+    K.foldStream st yld sng stp $ Stream.toStreamK $ fromSVar sv
 
 --
 -- This is slightly faster than the CPS version above
@@ -649,7 +650,7 @@ forkSVarAsync style m1 m2 = K.mkStream $ \st yld sng stp -> do
         AsyncVar -> newAsyncVar st (concurrently m1 m2)
         WAsyncVar -> newWAsyncVar st (concurrently m1 m2)
         _ -> error "illegal svar type"
-    K.foldStream st yld sng stp $ getSerialT $ fromSVar sv
+    K.foldStream st yld sng stp $ Stream.toStreamK $ fromSVar sv
     where
     concurrently ma mb = K.mkStream $ \st yld sng stp -> do
         runInIO <- askRunInIO

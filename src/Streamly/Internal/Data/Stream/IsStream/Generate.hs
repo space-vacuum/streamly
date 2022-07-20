@@ -121,6 +121,7 @@ import qualified Streamly.Internal.Data.Stream.StreamD.Generate as S
 import qualified System.IO as IO
 
 import Prelude hiding (iterate, replicate, repeat)
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 -- $setup
 -- >>> :m
@@ -652,7 +653,7 @@ fromCallback :: MonadAsync m => ((a -> m ()) -> m ()) -> SerialT m a
 fromCallback setCallback = concatM $ do
     (callback, stream) <- Par.newCallbackStream
     setCallback callback
-    return $ SerialT stream
+    return $ Stream.fromStreamK stream
 
 -- | Construct a stream by reading a 'Prim' 'IORef' repeatedly.
 --

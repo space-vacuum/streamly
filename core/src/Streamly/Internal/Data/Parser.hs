@@ -248,12 +248,13 @@ import Prelude hiding
 
 import Streamly.Internal.Data.Fold.Type (Fold(..))
 import Streamly.Internal.Data.Parser.ParserK.Type (Parser)
-import Streamly.Internal.Data.Stream.Serial (SerialT(getSerialT))
+import Streamly.Internal.Data.Stream.Serial (SerialT)
 
 import qualified Streamly.Internal.Data.Fold.Type as FL
 import qualified Streamly.Internal.Data.Parser.ParserD as D
 import qualified Streamly.Internal.Data.Parser.ParserK.Type as K
 import qualified Streamly.Internal.Data.Stream.StreamD.Type as SD
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 --
 -- $setup
@@ -1229,7 +1230,7 @@ concatSequence ::
     MonadCatch m =>
     Fold m b c -> SerialT m (Parser m a b) -> Parser m a c
 concatSequence f p =
-    let sp = fmap D.fromParserK $ SD.fromStreamK $ getSerialT p
+    let sp = fmap D.fromParserK $ SD.fromStreamK $ Stream.toStreamK p
         in D.toParserK $ D.sequence f sp
 
 -- | Map a 'Parser' returning function on the result of a 'Parser'.

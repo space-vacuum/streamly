@@ -46,6 +46,7 @@ import qualified Streamly.Internal.Data.Stream.StreamD.Type as D
 import qualified Streamly.Internal.Data.Stream.StreamK.Type as K
 
 import Streamly.Internal.Data.SVar
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 #if __GLASGOW_HASKELL__ < 810
 #ifdef INSPECTION
@@ -187,7 +188,7 @@ inspect $ hasNoTypeClassesExcept 'fromStreamVar
 {-# INLINE fromSVar #-}
 fromSVar :: MonadAsync m => SVar K.Stream m a -> SerialT m a
 fromSVar sv =
-    SerialT $ K.mkStream $ \st yld sng stp -> do
+    Stream.fromStreamK $ K.mkStream $ \st yld sng stp -> do
         ref <- liftIO $ newIORef ()
         _ <- liftIO $ mkWeakIORef ref hook
         -- We pass a copy of sv to fromStreamVar, so that we know that it has

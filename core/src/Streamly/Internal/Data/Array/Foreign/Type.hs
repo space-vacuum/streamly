@@ -107,6 +107,7 @@ import qualified Streamly.Internal.Data.Unfold.Type as Unfold
 import qualified GHC.Exts as Exts
 
 import Streamly.Internal.System.IO (unsafeInlineIO, defaultChunkSize)
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 #if __GLASGOW_HASKELL__ < 808
 import Data.Semigroup (Semigroup(..))
@@ -494,7 +495,7 @@ toStreamKRev arr =
 -- /Pre-release/
 {-# INLINE_EARLY toStream #-}
 toStream :: (Monad m, Storable a) => Array a -> SerialT m a
-toStream = SerialT . D.toStreamK . toStreamD
+toStream = Stream.fromStreamK . D.toStreamK . toStreamD
 -- XXX add fallback to StreamK rule
 -- {-# RULES "Streamly.Array.read fallback to StreamK" [1]
 --     forall a. S.readK (read a) = K.fromArray a #-}
@@ -504,7 +505,7 @@ toStream = SerialT . D.toStreamK . toStreamD
 -- /Pre-release/
 {-# INLINE_EARLY toStreamRev #-}
 toStreamRev :: (Monad m, Storable a) => Array a -> SerialT m a
-toStreamRev = SerialT . D.toStreamK . toStreamDRev
+toStreamRev = Stream.fromStreamK . D.toStreamK . toStreamDRev
 
 -- XXX add fallback to StreamK rule
 -- {-# RULES "Streamly.Array.readRev fallback to StreamK" [1]

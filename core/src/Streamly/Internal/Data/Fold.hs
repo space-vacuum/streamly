@@ -332,6 +332,7 @@ import Prelude hiding
        , scanl, scanl1, replicate, concatMap, mconcat, foldMap, unzip
        , span, splitAt, break, mapM, zip, maybe)
 import Streamly.Internal.Data.Fold.Type
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 -- $setup
 -- >>> :m
@@ -2542,7 +2543,7 @@ chunksBetween _low _high _f1 _f2 = undefined
 -- /Pre-release/
 {-# INLINE toStream #-}
 toStream :: Monad m => Fold m a (SerialT n a)
-toStream = fmap SerialT toStreamK
+toStream = fmap Stream.fromStreamK toStreamK
 
 -- This is more efficient than 'toStream'. toStream is exactly the same as
 -- reversing the stream after toStreamRev.
@@ -2560,7 +2561,7 @@ toStream = fmap SerialT toStreamK
 --  xn : ... : x2 : x1 : []
 {-# INLINE toStreamRev #-}
 toStreamRev :: Monad m => Fold m a (SerialT n a)
-toStreamRev = fmap SerialT toStreamKRev
+toStreamRev = fmap Stream.fromStreamK toStreamKRev
 
 -- XXX This does not fuse. It contains a recursive step function. We will need
 -- a Skip input constructor in the fold type to make it fuse.

@@ -188,6 +188,7 @@ import Prelude hiding
        , product, elem, notElem, maximum, minimum, head, last, tail, length
        , null , reverse, init, and, or, lookup, foldr1, (!!) , splitAt, break
        , mconcat)
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 -- $setup
 -- >>> :m
@@ -228,7 +229,7 @@ import Prelude hiding
 -- @since 0.1.0
 {-# INLINE uncons #-}
 uncons :: (IsStream t, Monad m) => SerialT m a -> m (Maybe (a, t m a))
-uncons (SerialT m) = fmap (fmap (fmap IsStream.fromStream)) $ K.uncons m
+uncons m = fmap (fmap (fmap IsStream.fromStream)) $ K.uncons $ Stream.toStreamK m
 
 ------------------------------------------------------------------------------
 -- Right Folds
@@ -363,7 +364,7 @@ foldxM = IsStream.foldlMx'
 -- /Since: 0.8.0 (signature change)/
 {-# INLINE foldlM' #-}
 foldlM' :: Monad m => (b -> a -> m b) -> m b -> SerialT m a -> m b
-foldlM' step begin m = S.foldlM' step begin $ toStreamS m
+foldlM' step begin m = S.foldlM' step begin $ S.fromStreamK $ Stream.toStreamK m
 
 ------------------------------------------------------------------------------
 -- Running a sink
@@ -429,11 +430,11 @@ parseBreakD parser strm = do
 --
 {-# INLINE parseBreak #-}
 parseBreak :: MonadThrow m => Parser m a b -> SerialT m a -> m (b, SerialT m a)
-parseBreak p (SerialT strm) = fmap f $ K.parseBreak (PRD.fromParserK p) strm
+parseBreak p m = fmap f $ K.parseBreak (PRD.fromParserK p) $ Stream.toStreamK m
 
     where
 
-    f (b, str) = (b, SerialT str)
+    f (b, str) = (b, Stream.fromStreamK str)
 
 
 ------------------------------------------------------------------------------
@@ -451,7 +452,7 @@ parseBreak p (SerialT strm) = fmap f $ K.parseBreak (PRD.fromParserK p) strm
 -- @since 0.1.0
 {-# INLINE mapM_ #-}
 mapM_ :: Monad m => (a -> m b) -> SerialT m a -> m ()
-mapM_ f m = S.mapM_ f $ toStreamS m
+mapM_ f m = S.mapM_ f $ S.fromStreamK $ Stream.toStreamK m
 
 -- |
 -- > drain = mapM_ (\_ -> return ())
@@ -555,14 +556,14 @@ headElse x = D.headElse x . toStreamD
 -- @since 0.1.1
 {-# INLINE tail #-}
 tail :: (IsStream t, Monad m) => SerialT m a -> m (Maybe (t m a))
-tail (SerialT m) = fmap (fmap IsStream.fromStream) $ K.tail m
+tail m = fmap (fmap IsStream.fromStream) $ K.tail $ Stream.toStreamK m
 
 -- | Extract all but the last element of the stream, if any.
 --
 -- @since 0.5.0
 {-# INLINE init #-}
 init :: (IsStream t, Monad m) => SerialT m a -> m (Maybe (t m a))
-init (SerialT m) = fmap (fmap IsStream.fromStream) $ K.init m
+init m = fmap (fmap IsStream.fromStream) $ K.init $ Stream.toStreamK m
 
 -- | Extract the last element of the stream, if any.
 --

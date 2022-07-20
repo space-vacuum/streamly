@@ -17,7 +17,7 @@
 module Streamly.Internal.Data.Stream.Serial
     (
     -- * Serial appending stream
-      SerialT(..)
+      SerialT
     , Serial
     , serial
 
@@ -67,6 +67,7 @@ import Streamly.Internal.Data.Maybe.Strict (Maybe'(..), toMaybe)
 import Streamly.Internal.Data.Stream.StreamK.Type (Stream)
 
 import qualified Streamly.Internal.Data.Stream.Common as P
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 import qualified Streamly.Internal.Data.Stream.StreamD.Generate as D
 import qualified Streamly.Internal.Data.Stream.StreamD.Transform as D
 import qualified Streamly.Internal.Data.Stream.StreamD.Type as D
@@ -113,9 +114,11 @@ import Prelude hiding (map, mapM, repeat, filter)
 -- /Since: 0.2.0 ("Streamly")/
 --
 -- @since 0.8.0
-newtype SerialT m a = SerialT {getSerialT :: Stream m a}
+--newtype SerialT m a = SerialT {getSerialT :: Stream m a}
     -- XXX when deriving do we inherit an INLINE?
-    deriving (Semigroup, Monoid, MonadTrans)
+    --deriving (Semigroup, Monoid, MonadTrans)
+
+type SerialT = Stream.Stream
 
 -- | A serial IO stream of elements of type @a@. See 'SerialT' documentation
 -- for more details.
@@ -131,19 +134,19 @@ type Serial = SerialT IO
 
 {-# INLINE cons #-}
 cons :: a -> SerialT m a -> SerialT m a
-cons x (SerialT ms) = SerialT $ K.cons x ms
+cons x st = Stream.fromStreamK $ K.cons x (Stream.toStreamK st)
 
 {-# INLINE consM #-}
 {-# SPECIALIZE consM :: IO a -> SerialT IO a -> SerialT IO a #-}
 consM :: Monad m => m a -> SerialT m a -> SerialT m a
-consM m (SerialT ms) = SerialT $ K.consM m ms
+consM m st = Stream.fromStreamK $ K.consM m (Stream.toStreamK st)
 
 -- |
 -- Generate an infinite stream by repeating a pure value.
 --
 {-# INLINE_NORMAL repeat #-}
 repeat :: Monad m => a -> SerialT m a
-repeat = SerialT . D.toStreamK . D.repeat
+repeat = Stream.fromStreamK . D.toStreamK . D.repeat
 
 ------------------------------------------------------------------------------
 -- Combining
@@ -157,24 +160,6 @@ serial = (<>)
 -- Monad
 ------------------------------------------------------------------------------
 
-instance Monad m => Monad (SerialT m) where
-    return = pure
-
-    -- Benchmarks better with StreamD bind and pure:
-    -- toList, filterAllout, *>, *<, >> (~2x)
-    --
-    -- pure = SerialT . D.fromStreamD . D.fromPure
-    -- m >>= f = D.fromStreamD $ D.concatMap (D.toStreamD . f) (D.toStreamD m)
-
-    -- Benchmarks better with CPS bind and pure:
-    -- Prime sieve (25x)
-    -- n binds, breakAfterSome, filterAllIn, state transformer (~2x)
-    --
-    {-# INLINE (>>=) #-}
-    (>>=) (SerialT m) f = SerialT $ K.bindWith K.serial m (getSerialT . f)
-
-    {-# INLINE (>>) #-}
-    (>>)  = (*>)
 
 ------------------------------------------------------------------------------
 -- Other instances
@@ -182,7 +167,7 @@ instance Monad m => Monad (SerialT m) where
 
 {-# INLINE mapM #-}
 mapM :: Monad m => (a -> m b) -> SerialT m a -> SerialT m b
-mapM f (SerialT m) = SerialT $ D.toStreamK $ D.mapM f $ D.fromStreamK m
+mapM f st = Stream.fromStreamK $ D.toStreamK $ D.mapM f $ D.fromStreamK (Stream.toStreamK st)
 
 -- |
 -- @
@@ -203,53 +188,28 @@ map f = mapM (return . f)
 
 {-# INLINE apSerial #-}
 apSerial :: Monad m => SerialT m (a -> b) -> SerialT m a -> SerialT m b
-apSerial (SerialT m1) (SerialT m2) =
-    SerialT $ D.toStreamK $ D.fromStreamK m1 <*> D.fromStreamK m2
+apSerial st1 st2 =
+    Stream.fromStreamK $ D.toStreamK $ D.fromStreamK (Stream.toStreamK st1) <*> D.fromStreamK (Stream.toStreamK st2)
 
 {-# INLINE apSequence #-}
 apSequence :: Monad m => SerialT m a -> SerialT m b -> SerialT m b
-apSequence (SerialT m1) (SerialT m2) =
-    SerialT $ D.toStreamK $ D.fromStreamK m1 *> D.fromStreamK m2
+apSequence st1 st2 =
+    Stream.fromStreamK $ D.toStreamK $ D.fromStreamK (Stream.toStreamK st1) *> D.fromStreamK (Stream.toStreamK st2)
 
 {-# INLINE apDiscardSnd #-}
 apDiscardSnd :: Monad m => SerialT m a -> SerialT m b -> SerialT m a
-apDiscardSnd (SerialT m1) (SerialT m2) =
-    SerialT $ D.toStreamK $ D.fromStreamK m1 <* D.fromStreamK m2
+apDiscardSnd st1 st2 =
+    Stream.fromStreamK $ D.toStreamK $ D.fromStreamK (Stream.toStreamK st1) <* D.fromStreamK (Stream.toStreamK st2)
 
--- Note: we need to define all the typeclass operations because we want to
--- INLINE them.
-instance Monad m => Applicative (SerialT m) where
-    {-# INLINE pure #-}
-    pure = SerialT . K.fromPure
 
-    {-# INLINE (<*>) #-}
-    (<*>) = apSerial
-    -- (<*>) = K.apSerial
-
-    {-# INLINE liftA2 #-}
-    liftA2 f x = (<*>) (fmap f x)
-
-    {-# INLINE (*>) #-}
-    (*>)  = apSequence
-    -- (*>)  = K.apSerialDiscardFst
-
-    {-# INLINE (<*) #-}
-    (<*) = apDiscardSnd
-    -- (<*)  = K.apSerialDiscardSnd
-
-MONAD_COMMON_INSTANCES(SerialT,)
-LIST_INSTANCES(SerialT)
-NFDATA1_INSTANCE(SerialT)
-FOLDABLE_INSTANCE(SerialT)
-TRAVERSABLE_INSTANCE(SerialT)
 
 {-# INLINE toStreamD #-}
 toStreamD :: Applicative m => SerialT m a -> D.Stream m a
-toStreamD (SerialT m) = D.fromStreamK m
+toStreamD st = D.fromStreamK (Stream.toStreamK st)
 
 {-# INLINE fromStreamD #-}
 fromStreamD :: Monad m => D.Stream m a -> SerialT m a
-fromStreamD m = SerialT $ D.toStreamK m
+fromStreamD m = Stream.fromStreamK $ D.toStreamK m
 
 -- XXX We should only export generation and combinators from this module.
 --
@@ -341,10 +301,10 @@ list = fromStreamD . D.fromList
 --
 {-# INLINE unfoldrM #-}
 unfoldrM :: Monad m => (b -> m (Maybe (a, b))) -> b -> SerialT m a
-unfoldrM step seed = SerialT $ D.toStreamK (D.unfoldrM step seed)
+unfoldrM step seed = Stream.fromStreamK $ D.toStreamK (D.unfoldrM step seed)
 
 {-# INLINE_EARLY drain #-}
 drain :: Monad m => SerialT m a -> m ()
-drain (SerialT m) = D.drain $ D.fromStreamK m
+drain st = D.drain $ D.fromStreamK (Stream.toStreamK st)
 {-# RULES "drain fallback to CPS" [1]
     forall a. D.drain (D.fromStreamK a) = K.drain a #-}

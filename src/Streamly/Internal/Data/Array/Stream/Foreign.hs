@@ -94,6 +94,7 @@ import qualified Streamly.Internal.Data.Parser.ParserD as PRD
 import qualified Streamly.Internal.Data.Stream.IsStream as S
 import qualified Streamly.Internal.Data.Stream.StreamD as D
 import qualified Streamly.Internal.Data.Stream.StreamK as K
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 -- XXX Since these are immutable arrays MonadIO constraint can be removed from
 -- most places.
@@ -408,7 +409,7 @@ foldBreak ::
     -> SerialT m (A.Array a)
     -> m (b, SerialT m (A.Array a))
 -- foldBreak f s = fmap fromStreamD <$> foldBreakD f (toStreamD s)
-foldBreak f (SerialT s) = fmap (fmap SerialT) $ foldBreakK f s
+foldBreak f s = fmap (fmap Stream.fromStreamK) $ foldBreakK f $ Stream.toStreamK s
 -- If foldBreak performs better than runArrayFoldBreak we can use a rewrite
 -- rule to rewrite runArrayFoldBreak to fold.
 -- foldBreak f = runArrayFoldBreak (ArrayFold.fromFold f)
@@ -739,8 +740,8 @@ parseBreak ::
 parseBreak p s =
     fmap fromStreamD <$> parseBreakD (PRD.fromParserK p) (toStreamD s)
 -}
-parseBreak p (SerialT s) =
-    fmap (fmap SerialT) $ parseBreakK (PRD.fromParserK p) s
+parseBreak p m =
+    fmap (fmap Stream.fromStreamK) $ parseBreakK (PRD.fromParserK p) $ Stream.toStreamK m
 
 -------------------------------------------------------------------------------
 -- Elimination - Running Array Folds and parsers

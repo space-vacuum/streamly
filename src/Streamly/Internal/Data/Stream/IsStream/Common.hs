@@ -94,6 +94,7 @@ import qualified Streamly.Internal.Data.Stream.StreamD as S
 import Streamly.Internal.System.IO (defaultChunkSize)
 
 import Prelude hiding (take, takeWhile, drop, reverse, concatMap, map, zipWith)
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 --
 -- $setup
@@ -309,7 +310,7 @@ foldContinue f s = D.foldContinue f $ IsStream.toStreamD s
 -- @since 0.7.0
 {-# INLINE fold #-}
 fold :: Monad m => Fold m a b -> SerialT m a -> m b
-fold fl (SerialT strm) = D.fold fl $ D.fromStreamK strm
+fold fl m = D.fold fl $ D.fromStreamK $ Stream.toStreamK m
 
 -- | Like 'fold' but also returns the remaining stream.
 --
@@ -326,11 +327,11 @@ foldBreak fl (SerialT strm) = fmap f $ D.foldBreak fl $ D.fromStreamK strm
 
     f (b, str) = (b, SerialT (D.toStreamK str))
 -}
-foldBreak fl (SerialT strm) = fmap f $ K.foldBreak fl strm
+foldBreak fl m = fmap f $ K.foldBreak fl $ Stream.toStreamK m
 
     where
 
-    f (b, str) = (b, SerialT str)
+    f (b, str) = (b, Stream.fromStreamK str)
 
 ------------------------------------------------------------------------------
 -- Transformation

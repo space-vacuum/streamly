@@ -48,6 +48,7 @@ import qualified Streamly.Internal.Data.Stream.StreamD as D
 import qualified Streamly.Internal.Data.Stream.Serial as Serial
 
 import Prelude hiding (map, repeat, zipWith)
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 #include "Instances.hs"
 
@@ -105,10 +106,10 @@ NFDATA1_INSTANCE(ZipSerialM)
 
 instance Monad m => Functor (ZipSerialM m) where
     {-# INLINE fmap #-}
-    fmap f (ZipSerialM m) = ZipSerialM $ getSerialT $ fmap f (SerialT m)
+    fmap f (ZipSerialM m) = ZipSerialM $ Stream.toStreamK $ fmap f (Stream.fromStreamK m)
 
 instance Monad m => Applicative (ZipSerialM m) where
-    pure = ZipSerialM . getSerialT . Serial.repeat
+    pure = ZipSerialM . Stream.toStreamK . Serial.repeat
 
     {-# INLINE (<*>) #-}
     ZipSerialM m1 <*> ZipSerialM m2 = ZipSerialM $ zipWithK id m1 m2
