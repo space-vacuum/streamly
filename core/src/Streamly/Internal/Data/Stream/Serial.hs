@@ -42,31 +42,12 @@ module Streamly.Internal.Data.Stream.Serial
     )
 where
 
-import Control.Applicative (liftA2)
-import Control.DeepSeq (NFData(..), NFData1(..))
-import Control.Monad.Base (MonadBase(..), liftBaseDefault)
-import Control.Monad.Catch (MonadThrow, throwM)
-import Control.Monad.IO.Class (MonadIO(..))
-import Control.Monad.Reader.Class (MonadReader(..))
-import Control.Monad.State.Class (MonadState(..))
-import Control.Monad.Trans.Class (MonadTrans(lift))
-import Data.Foldable (Foldable(foldl'), fold)
-import Data.Functor.Identity (Identity(..), runIdentity)
-import Data.Maybe (fromMaybe)
-import Data.Semigroup (Endo(..))
 #if __GLASGOW_HASKELL__ < 808
 import Data.Semigroup (Semigroup(..))
 #endif
-import GHC.Exts (IsList(..), IsString(..), oneShot)
-import Text.Read
-       ( Lexeme(Ident), lexP, parens, prec, readPrec, readListPrec
-       , readListPrecDefault)
-import Streamly.Internal.BaseCompat ((#.))
+import GHC.Exts (IsList(..))
 import Streamly.Internal.Data.Fold.Type (Fold)
-import Streamly.Internal.Data.Maybe.Strict (Maybe'(..), toMaybe)
-import Streamly.Internal.Data.Stream.StreamK.Type (Stream)
 
-import qualified Streamly.Internal.Data.Stream.Common as P
 import qualified Streamly.Internal.Data.Stream.Type as Stream
 import qualified Streamly.Internal.Data.Stream.StreamD.Generate as D
 import qualified Streamly.Internal.Data.Stream.StreamD.Transform as D
@@ -186,6 +167,7 @@ mapM f st = Stream.fromStreamK $ D.toStreamK $ D.mapM f $ D.fromStreamK (Stream.
 map :: Monad m => (a -> b) -> SerialT m a -> SerialT m b
 map f = mapM (return . f)
 
+{-
 {-# INLINE apSerial #-}
 apSerial :: Monad m => SerialT m (a -> b) -> SerialT m a -> SerialT m b
 apSerial st1 st2 =
@@ -201,7 +183,7 @@ apDiscardSnd :: Monad m => SerialT m a -> SerialT m b -> SerialT m a
 apDiscardSnd st1 st2 =
     Stream.fromStreamK $ D.toStreamK $ D.fromStreamK (Stream.toStreamK st1) <* D.fromStreamK (Stream.toStreamK st2)
 
-
+-}
 
 {-# INLINE toStreamD #-}
 toStreamD :: Applicative m => SerialT m a -> D.Stream m a
