@@ -178,6 +178,7 @@ import qualified Streamly.Internal.Data.Parser.ParserD as PRD
 import qualified Streamly.Internal.Data.Parser.ParserK.Type as PRK
 import qualified System.IO as IO
 #ifdef USE_STREAMK_ONLY
+import qualified Streamly.Internal.Data.Stream.StreamK.Type as S
 import qualified Streamly.Internal.Data.Stream.StreamK as S
 #else
 import qualified Streamly.Internal.Data.Stream.StreamD as S
