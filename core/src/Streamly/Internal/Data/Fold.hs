@@ -346,7 +346,8 @@ import qualified Streamly.Internal.Data.Stream.Type as Stream
 -- >>> import qualified Streamly.Internal.Data.Fold.Window as FoldW
 -- >>> import qualified Streamly.Data.Array.Foreign as Array
 -- >>> import qualified Streamly.Internal.Data.Parser as Parser
--- >>> import Streamly.Internal.Data.Stream.Serial (SerialT)
+-- >>> import qualified Streamly.Internal.Data.Stream.Type as Stream
+-- >>> import Streamly.Internal.Data.Stream.Type (Stream)
 -- >>> import Data.IORef (newIORef, readIORef, writeIORef)
 -- >>> import qualified Streamly.Internal.Data.Array.Foreign.Mut.Type as MA
 
@@ -2538,7 +2539,7 @@ chunksBetween _low _high _f1 _f2 = undefined
 -- /Warning!/ working on large streams accumulated as buffers in memory could
 -- be very inefficient, consider using "Streamly.Data.Array" instead.
 --
--- >>> toStream = fmap SerialT Fold.toStreamK
+-- >>> toStream = fmap Stream.fromStreamK Fold.toStreamK
 --
 -- /Pre-release/
 {-# INLINE toStream #-}
@@ -2551,7 +2552,7 @@ toStream = fmap Stream.fromStreamK toStreamK
 -- | Buffers the input stream to a pure stream in the reverse order of the
 -- input.
 --
--- >>> toStreamRev = fmap SerialT Fold.toStreamKRev
+-- >>> toStreamRev = fmap Stream.fromStreamK Fold.toStreamKRev
 --
 -- /Warning!/ working on large streams accumulated as buffers in memory could
 -- be very inefficient, consider using "Streamly.Data.Array" instead.
