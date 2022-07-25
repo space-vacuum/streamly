@@ -142,11 +142,11 @@ import qualified Streamly.Internal.Data.Array.Foreign.Type as A
 import qualified Streamly.Internal.Data.Fold as FL
 import qualified Streamly.Internal.Data.Producer.Type as Producer
 import qualified Streamly.Internal.Data.Producer as Producer
+import qualified Streamly.Internal.Data.Ring.Foreign as RB
 import qualified Streamly.Internal.Data.Stream.Common as P
 import qualified Streamly.Internal.Data.Stream.StreamD as D
-import qualified Streamly.Internal.Data.Unfold as Unfold
-import qualified Streamly.Internal.Data.Ring.Foreign as RB
 import qualified Streamly.Internal.Data.Stream.Type as Stream
+import qualified Streamly.Internal.Data.Unfold as Unfold
 
 -------------------------------------------------------------------------------
 -- Construction
@@ -161,7 +161,7 @@ import qualified Streamly.Internal.Data.Stream.Type as Stream
 fromStreamN :: (MonadIO m, Storable a) => Int -> SerialT m a -> m (Array a)
 fromStreamN n m = do
     when (n < 0) $ error "writeN: negative write count specified"
-    A.fromStreamDN n $ D.fromStreamK $ Stream.toStreamK m
+    A.fromStreamDN n $ Stream.toStreamD m
 
 -- | Create an 'Array' from a stream. This is useful when we want to create a
 -- single array from a stream of unknown size. 'writeN' is at least twice
@@ -372,7 +372,7 @@ getSliceUnsafe index len (Array contents start e) =
 splitOn :: (Monad m, Storable a) =>
     (a -> Bool) -> Array a -> SerialT m (Array a)
 splitOn predicate arr =
-    Stream.fromStreamK $ D.toStreamK
+    Stream.fromStreamD
         $ fmap (\(i, len) -> getSliceUnsafe i len arr)
         $ D.sliceOnSuffix predicate (A.toStreamD arr)
 

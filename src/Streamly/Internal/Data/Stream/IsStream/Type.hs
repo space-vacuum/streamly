@@ -129,11 +129,11 @@ import qualified Streamly.Internal.Data.Stream.StreamK.Type as S
 #else
 import qualified Streamly.Internal.Data.Stream.StreamD.Type as S
 #endif
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 import qualified Streamly.Internal.Data.Stream.Zip as Zip
 import qualified Streamly.Internal.Data.Stream.ZipAsync as ZipAsync
 
 import Prelude hiding (foldr, repeat)
-import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 #include "inline.hs"
 

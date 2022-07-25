@@ -253,7 +253,7 @@ import GHC.Ptr (Ptr(..))
 
 import Streamly.Internal.Data.Fold.Type (Fold(..))
 import Streamly.Internal.Data.Producer.Type (Producer (..))
-import Streamly.Internal.Data.Stream.Serial (SerialT)
+import Streamly.Internal.Data.Stream.Type (Stream)
 import Streamly.Internal.Data.SVar.Type (adaptState, defState)
 import Streamly.Internal.Data.Unfold.Type (Unfold(..))
 import Streamly.Internal.System.IO (arrayPayloadSize, defaultChunkSize)
@@ -1128,8 +1128,8 @@ getIndicesD liftio (D.Stream stepi sti) = Unfold step inject
                 return D.Stop
 
 {-# INLINE getIndices #-}
-getIndices :: (MonadIO m, Storable a) => SerialT m Int -> Unfold m (Array a) a
-getIndices = getIndicesD liftIO . D.fromStreamK . Stream.toStreamK
+getIndices :: (MonadIO m, Storable a) => Stream m Int -> Unfold m (Array a) a
+getIndices = getIndicesD liftIO . Stream.toStreamD
 
 -------------------------------------------------------------------------------
 -- Subarrays

@@ -118,10 +118,10 @@ import qualified Streamly.Internal.Data.Stream.StreamK.Type as S
 #else
 import qualified Streamly.Internal.Data.Stream.StreamD.Generate as S
 #endif
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 import qualified System.IO as IO
 
 import Prelude hiding (iterate, replicate, repeat)
-import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 -- $setup
 -- >>> :m

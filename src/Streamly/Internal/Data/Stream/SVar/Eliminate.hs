@@ -41,9 +41,9 @@ import Streamly.Internal.Data.Time.Clock (Clock(Monotonic), getTime)
 
 import qualified Streamly.Internal.Data.Stream.StreamD.Type as D
 import qualified Streamly.Internal.Data.Stream.StreamK.Type as K
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 import Streamly.Internal.Data.SVar
-import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 -------------------------------------------------------------------------------
 -- Concurrent function application

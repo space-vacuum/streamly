@@ -31,7 +31,7 @@ module Streamly.Internal.Data.Stream.IsStream.Eliminate
     , parse
     , parseK
     , parseD
-    , parseBreak
+    , Stream.parseBreak
     , parseBreakD
 
     -- * Stream Deconstruction
@@ -173,23 +173,22 @@ import qualified Streamly.Internal.Data.Fold as FL
 import qualified Streamly.Internal.Data.Stream.IsStream.Type as IsStream
 import qualified Streamly.Internal.Data.Stream.StreamD as D
 import qualified Streamly.Internal.Data.Stream.StreamK.Type as K
-import qualified Streamly.Internal.Data.Stream.StreamK as K
 import qualified Streamly.Internal.Data.Parser.ParserD as PRD
 import qualified Streamly.Internal.Data.Parser.ParserK.Type as PRK
-import qualified System.IO as IO
 #ifdef USE_STREAMK_ONLY
-import qualified Streamly.Internal.Data.Stream.StreamK.Type as S
 import qualified Streamly.Internal.Data.Stream.StreamK as S
+import qualified Streamly.Internal.Data.Stream.StreamK.Type as S
 #else
 import qualified Streamly.Internal.Data.Stream.StreamD as S
 #endif
+import qualified Streamly.Internal.Data.Stream as Stream
+import qualified System.IO as IO
 
 import Prelude hiding
        ( drop, take, takeWhile, foldr , foldl, mapM_, sequence, all, any, sum
        , product, elem, notElem, maximum, minimum, head, last, tail, length
        , null , reverse, init, and, or, lookup, foldr1, (!!) , splitAt, break
        , mconcat)
-import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 -- $setup
 -- >>> :m
@@ -230,7 +229,7 @@ import qualified Streamly.Internal.Data.Stream.Type as Stream
 -- @since 0.1.0
 {-# INLINE uncons #-}
 uncons :: (IsStream t, Monad m) => SerialT m a -> m (Maybe (a, t m a))
-uncons m = fmap (fmap (fmap IsStream.fromStream)) $ K.uncons $ Stream.toStreamK m
+uncons = fmap (fmap (fmap IsStream.fromStream)) . K.uncons . Stream.toStreamK
 
 ------------------------------------------------------------------------------
 -- Right Folds
@@ -365,7 +364,7 @@ foldxM = IsStream.foldlMx'
 -- /Since: 0.8.0 (signature change)/
 {-# INLINE foldlM' #-}
 foldlM' :: Monad m => (b -> a -> m b) -> m b -> SerialT m a -> m b
-foldlM' step begin m = S.foldlM' step begin $ S.fromStreamK $ Stream.toStreamK m
+foldlM' step begin m = S.foldlM' step begin $ Stream.toStreamD m
 
 ------------------------------------------------------------------------------
 -- Running a sink
@@ -425,19 +424,6 @@ parseBreakD parser strm = do
     (b, strmD) <- D.parseBreak parser (toStreamD strm)
     return $! (b, fromStreamD strmD)
 
--- | Parse a stream using the supplied 'Parser'.
---
--- /Internal/
---
-{-# INLINE parseBreak #-}
-parseBreak :: MonadThrow m => Parser m a b -> SerialT m a -> m (b, SerialT m a)
-parseBreak p m = fmap f $ K.parseBreak (PRD.fromParserK p) $ Stream.toStreamK m
-
-    where
-
-    f (b, str) = (b, Stream.fromStreamK str)
-
-
 ------------------------------------------------------------------------------
 -- Specific Fold Functions
 ------------------------------------------------------------------------------
@@ -453,7 +439,7 @@ parseBreak p m = fmap f $ K.parseBreak (PRD.fromParserK p) $ Stream.toStreamK m
 -- @since 0.1.0
 {-# INLINE mapM_ #-}
 mapM_ :: Monad m => (a -> m b) -> SerialT m a -> m ()
-mapM_ f m = S.mapM_ f $ S.fromStreamK $ Stream.toStreamK m
+mapM_ f = S.mapM_ f . Stream.toStreamD
 
 -- |
 -- > drain = mapM_ (\_ -> return ())

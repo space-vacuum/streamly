@@ -409,7 +409,10 @@ foldBreak ::
     -> SerialT m (A.Array a)
     -> m (b, SerialT m (A.Array a))
 -- foldBreak f s = fmap fromStreamD <$> foldBreakD f (toStreamD s)
-foldBreak f s = fmap (fmap Stream.fromStreamK) $ foldBreakK f $ Stream.toStreamK s
+foldBreak f =
+      fmap (fmap Stream.fromStreamK)
+    . foldBreakK f
+    . Stream.toStreamK
 -- If foldBreak performs better than runArrayFoldBreak we can use a rewrite
 -- rule to rewrite runArrayFoldBreak to fold.
 -- foldBreak f = runArrayFoldBreak (ArrayFold.fromFold f)
@@ -740,8 +743,10 @@ parseBreak ::
 parseBreak p s =
     fmap fromStreamD <$> parseBreakD (PRD.fromParserK p) (toStreamD s)
 -}
-parseBreak p m =
-    fmap (fmap Stream.fromStreamK) $ parseBreakK (PRD.fromParserK p) $ Stream.toStreamK m
+parseBreak p =
+      fmap (fmap Stream.fromStreamK)
+    . parseBreakK (PRD.fromParserK p)
+    . Stream.toStreamK
 
 -------------------------------------------------------------------------------
 -- Elimination - Running Array Folds and parsers

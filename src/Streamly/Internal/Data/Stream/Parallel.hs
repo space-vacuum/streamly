@@ -73,9 +73,9 @@ import qualified Streamly.Internal.Data.Stream.StreamK.Type as K
 import qualified Streamly.Internal.Data.Stream.StreamD.Type as D
 import qualified Streamly.Internal.Data.Stream.SVar.Generate as SVar
 import qualified Streamly.Internal.Data.Stream.SVar.Eliminate as SVar
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 import Streamly.Internal.Data.SVar
-import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 #include "inline.hs"
 #include "Instances.hs"

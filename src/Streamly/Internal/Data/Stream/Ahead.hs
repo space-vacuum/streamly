@@ -55,11 +55,11 @@ import Streamly.Internal.Data.Stream.StreamK.Type (Stream)
 
 import qualified Streamly.Internal.Data.Stream.StreamK.Type as K
 import qualified Streamly.Internal.Data.Stream.StreamD.Type as D
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 import Streamly.Internal.Data.Stream.SVar.Generate
 import Streamly.Internal.Data.SVar
 import Prelude hiding (map)
-import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 #include "Instances.hs"
 

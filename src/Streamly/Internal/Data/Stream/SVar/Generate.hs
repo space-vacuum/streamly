@@ -44,9 +44,9 @@ import System.Mem (performMajorGC)
 
 import qualified Streamly.Internal.Data.Stream.StreamD.Type as D
 import qualified Streamly.Internal.Data.Stream.StreamK.Type as K
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 import Streamly.Internal.Data.SVar
-import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 #if __GLASGOW_HASKELL__ < 810
 #ifdef INSPECTION

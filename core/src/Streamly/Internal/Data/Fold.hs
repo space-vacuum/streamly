@@ -311,7 +311,7 @@ import Streamly.Internal.Data.IsMap (IsMap(..))
 import Streamly.Internal.Data.Pipe.Type (Pipe (..), PipeState(..))
 import Streamly.Internal.Data.Unfold.Type (Unfold(..))
 import Streamly.Internal.Data.Tuple.Strict (Tuple'(..), Tuple3'(..))
-import Streamly.Internal.Data.Stream.Serial (SerialT)
+import Streamly.Internal.Data.Stream.Type (Stream)
 
 import qualified Data.IntSet as IntSet
 import qualified Data.Set as Set
@@ -323,6 +323,7 @@ import qualified Streamly.Internal.Data.IsMap as IsMap
 import qualified Streamly.Internal.Data.Pipe.Type as Pipe
 import qualified Streamly.Internal.Data.Ring.Foreign as Ring
 import qualified Streamly.Internal.Data.Stream.StreamD.Type as StreamD
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 import Prelude hiding
        ( filter, foldl1, drop, dropWhile, take, takeWhile, zipWith
@@ -332,7 +333,6 @@ import Prelude hiding
        , scanl, scanl1, replicate, concatMap, mconcat, foldMap, unzip
        , span, splitAt, break, mapM, zip, maybe)
 import Streamly.Internal.Data.Fold.Type
-import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 -- $setup
 -- >>> :m
@@ -2543,7 +2543,7 @@ chunksBetween _low _high _f1 _f2 = undefined
 --
 -- /Pre-release/
 {-# INLINE toStream #-}
-toStream :: Monad m => Fold m a (SerialT n a)
+toStream :: Monad m => Fold m a (Stream n a)
 toStream = fmap Stream.fromStreamK toStreamK
 
 -- This is more efficient than 'toStream'. toStream is exactly the same as
@@ -2561,7 +2561,7 @@ toStream = fmap Stream.fromStreamK toStreamK
 
 --  xn : ... : x2 : x1 : []
 {-# INLINE toStreamRev #-}
-toStreamRev :: Monad m => Fold m a (SerialT n a)
+toStreamRev :: Monad m => Fold m a (Stream n a)
 toStreamRev = fmap Stream.fromStreamK toStreamKRev
 
 -- XXX This does not fuse. It contains a recursive step function. We will need

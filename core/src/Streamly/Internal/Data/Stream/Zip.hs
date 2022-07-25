@@ -45,9 +45,9 @@ import qualified Streamly.Internal.Data.Stream.Common as P
 import qualified Streamly.Internal.Data.Stream.StreamK.Type as K
 import qualified Streamly.Internal.Data.Stream.StreamD as D
 import qualified Streamly.Internal.Data.Stream.Serial as Serial
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 import Prelude hiding (map, repeat, zipWith)
-import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 #include "Instances.hs"
 

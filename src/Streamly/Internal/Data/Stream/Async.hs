@@ -66,10 +66,10 @@ import Streamly.Internal.Data.Stream.SVar.Generate (fromSVar, fromSVarD)
 
 import qualified Streamly.Internal.Data.Stream.StreamK.Type as K
 import qualified Streamly.Internal.Data.Stream.StreamD.Type as D
+import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 import Streamly.Internal.Data.SVar.Type
 import Streamly.Internal.Data.SVar
-import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 #include "Instances.hs"
 

@@ -23,8 +23,8 @@ module Streamly.Internal.Data.Stream.IsStream.Common
 
     -- * Elimination
     , foldContinue
-    , fold
-    , foldBreak
+    , Stream.fold
+    , Stream.foldBreak
 
     -- * Transformation
     , map
@@ -78,6 +78,7 @@ import Streamly.Internal.Data.Stream.IsStream.Type
     (IsStream(..), fromStreamD, toStreamD, fromStreamS, toStreamS)
 import Streamly.Internal.Data.Stream.Serial (SerialT)
 import Streamly.Internal.Data.Time.Units (AbsTime, RelTime64, addToAbsTime64)
+import Streamly.Internal.System.IO (defaultChunkSize)
 
 import qualified Streamly.Internal.Data.Array.Foreign.Type as A
 import qualified Streamly.Internal.Data.Stream.Async as Async
@@ -91,10 +92,9 @@ import qualified Streamly.Internal.Data.Stream.StreamK as S
 #else
 import qualified Streamly.Internal.Data.Stream.StreamD as S
 #endif
-import Streamly.Internal.System.IO (defaultChunkSize)
+import qualified Streamly.Internal.Data.Stream as Stream
 
 import Prelude hiding (take, takeWhile, drop, reverse, concatMap, map, zipWith)
-import qualified Streamly.Internal.Data.Stream.Type as Stream
 
 --
 -- $setup
@@ -285,53 +285,6 @@ relTimesWith = fmap snd . timesWith
 {-# INLINE foldContinue #-}
 foldContinue :: Monad m => Fold m a b -> SerialT m a -> Fold m a b
 foldContinue f s = D.foldContinue f $ IsStream.toStreamD s
-
--- | Fold a stream using the supplied left 'Fold' and reducing the resulting
--- expression strictly at each step. The behavior is similar to 'foldl''. A
--- 'Fold' can terminate early without consuming the full stream. See the
--- documentation of individual 'Fold's for termination behavior.
---
--- >>> Stream.fold Fold.sum (Stream.enumerateFromTo 1 100)
--- 5050
---
--- Folds never fail, therefore, they produce a default value even when no input
--- is provided. It means we can always fold an empty stream and get a valid
--- result.  For example:
---
--- >>> Stream.fold Fold.sum Stream.nil
--- 0
---
--- However, 'foldMany' on an empty stream results in an empty stream.
--- Therefore, @Stream.fold f@ is not the same as @Stream.head . Stream.foldMany
--- f@.
---
--- @fold f = Stream.parse (Parser.fromFold f)@
---
--- @since 0.7.0
-{-# INLINE fold #-}
-fold :: Monad m => Fold m a b -> SerialT m a -> m b
-fold fl m = D.fold fl $ D.fromStreamK $ Stream.toStreamK m
-
--- | Like 'fold' but also returns the remaining stream.
---
--- /Inhibits stream fusion/
---
-{-# INLINE foldBreak #-}
-foldBreak :: Monad m => Fold m a b -> SerialT m a -> m (b, SerialT m a)
-{-
--- XXX This shows quadratic performance when used recursively perhaps because
--- of StreamK to StreamD conversions not getting eliminated sue to recursion.
-foldBreak fl (SerialT strm) = fmap f $ D.foldBreak fl $ D.fromStreamK strm
-
-    where
-
-    f (b, str) = (b, SerialT (D.toStreamK str))
--}
-foldBreak fl m = fmap f $ K.foldBreak fl $ Stream.toStreamK m
-
-    where
-
-    f (b, str) = (b, Stream.fromStreamK str)
 
 ------------------------------------------------------------------------------
 -- Transformation
