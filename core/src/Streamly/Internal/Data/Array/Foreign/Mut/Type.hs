@@ -1129,7 +1129,7 @@ getIndicesD liftio (D.Stream stepi sti) = Unfold step inject
 
 {-# INLINE getIndices #-}
 getIndices :: (MonadIO m, Storable a) => SerialT m Int -> Unfold m (Array a) a
-getIndices  st = getIndicesD liftIO $ D.fromStreamK $ Stream.toStreamK st
+getIndices = getIndicesD liftIO . D.fromStreamK . Stream.toStreamK
 
 -------------------------------------------------------------------------------
 -- Subarrays
