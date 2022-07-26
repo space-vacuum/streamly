@@ -177,7 +177,6 @@ import qualified Streamly.Internal.Data.Parser.ParserD as PRD
 import qualified Streamly.Internal.Data.Parser.ParserK.Type as PRK
 #ifdef USE_STREAMK_ONLY
 import qualified Streamly.Internal.Data.Stream.StreamK as S
-import qualified Streamly.Internal.Data.Stream.StreamK.Type as S
 #else
 import qualified Streamly.Internal.Data.Stream.StreamD as S
 #endif
@@ -364,7 +363,7 @@ foldxM = IsStream.foldlMx'
 -- /Since: 0.8.0 (signature change)/
 {-# INLINE foldlM' #-}
 foldlM' :: Monad m => (b -> a -> m b) -> m b -> SerialT m a -> m b
-foldlM' step begin m = S.foldlM' step begin $ Stream.toStreamD m
+foldlM' step begin m = S.foldlM' step begin $ IsStream.toStreamS m
 
 ------------------------------------------------------------------------------
 -- Running a sink
@@ -439,7 +438,7 @@ parseBreakD parser strm = do
 -- @since 0.1.0
 {-# INLINE mapM_ #-}
 mapM_ :: Monad m => (a -> m b) -> SerialT m a -> m ()
-mapM_ f = S.mapM_ f . Stream.toStreamD
+mapM_ f = S.mapM_ f . IsStream.toStreamS
 
 -- |
 -- > drain = mapM_ (\_ -> return ())
