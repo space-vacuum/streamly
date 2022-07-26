@@ -213,6 +213,7 @@ instance Monad m => Applicative (Stream m) where
     -- (<*)  = K.apSerialDiscardSnd
 
 -- XXX Need to remove the MonadBase instance
+-- XXX Can't we remove it right now?
 MONAD_COMMON_INSTANCES(Stream,)
 LIST_INSTANCES(Stream)
 NFDATA1_INSTANCE(Stream)

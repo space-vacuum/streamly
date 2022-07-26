@@ -124,6 +124,8 @@ foldContinue f s = D.foldContinue f $ toStreamD s
 --
 -- @since 0.7.0
 {-# INLINE fold #-}
+-- Why since 0.7.0?
+-- This is new API, new type. It's "since" whenever this API will be exposed?
 fold :: Monad m => Fold m a b -> Stream m a -> m b
 fold fl strm = D.fold fl $ D.fromStreamK $ toStreamK strm
 
