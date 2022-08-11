@@ -420,6 +420,7 @@ takeWhileP =
                         (takeWhileTillLen n predicate ls)
                     Left _ -> property False
 
+{-
 choice :: Property
 choice =
     forAll
@@ -435,6 +436,7 @@ choice =
     where
 
     parser i = P.fromFold (FL.take i FL.toList)
+-}
 
 groupBy :: Property
 groupBy =
@@ -1151,10 +1153,12 @@ main =
         prop "check first element exists and satisfies predicate" satisfy
 
     describe "test for sequence parser" $ do
+        {-
         prop "P.takeBetween = Prelude.take when len >= m and len <= n"
             takeBetweenPass
         prop ("P.takeBetween = Prelude.take when len >= m and len <= n and fail"
               ++ "otherwise fail") Main.takeBetween
+      -}
 
         prop "P.takeEQ = Prelude.take when len >= n" takeEQPass
         prop "P.takeEQ = Prelude.take when len >= n and fail otherwise"
@@ -1175,7 +1179,7 @@ main =
         prop "P.groupBy = Prelude.head . Prelude.groupBy" groupBy
         prop "many (P.wordBy ' ') = words'" wordBy
         parseManyWordQuotedBy
-        prop "choice" choice
+        -- prop "choice" choice
         -- prop "" splitWithPass
         -- prop "" splitWithFailLeft
         -- prop "" splitWithFailRight

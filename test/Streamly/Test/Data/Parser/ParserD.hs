@@ -413,6 +413,7 @@ splitWithFailBoth =
         Right _ -> False
         Left _ -> True)
 
+{-
 teeWithPass :: Property
 teeWithPass =
     forAll (chooseInt (min_value, max_value)) $ \n ->
@@ -507,6 +508,7 @@ longestFailBoth =
         (case S.parseD (P.shortest (P.die "die") (P.die "die")) (S.fromList [1 :: Int]) of
         Right _ -> False
         Left _ -> True)
+-}
 
 many :: Property
 many =
@@ -751,10 +753,12 @@ main =
         prop "check first element exists and satisfies predicate" satisfy
 
     describe "test for sequence parser" $ do
+        {-
         prop "P.takeBetween m n = Prelude.take when len >= m and len <= n"
                 takeBetweenPass
         prop "P.takeBetween m n = Prelude.take when len >= m and len <= n and\
                 \fail otherwise" takeBetween
+        -}
         prop "P.take = Prelude.take" Main.take
         prop "P.takeEQ = Prelude.take when len >= n" takeEQPass
         prop "P.takeEQ = Prelude.take when len >= n and fail otherwise" Main.takeEQ
@@ -772,6 +776,7 @@ main =
         prop "fail due to die as left parser" splitWithFailLeft
         prop "fail due to die as right parser" splitWithFailRight
         prop "fail due to die as both parsers" splitWithFailBoth
+        {-
         prop "parsed two lists should be equal" teeWithPass
         prop "fail due to die as left parser" teeWithFailLeft
         prop "fail due to die as right parser" teeWithFailRight
@@ -784,6 +789,7 @@ main =
         prop "pass even if die is left parser" longestPassLeft
         prop "pass even if die is right parser" longestPassRight
         prop "fail due to die as both parsers" longestFailBoth
+        -}
         prop "P.many concatFold $ P.takeEndBy_ (== 1) FL.toList = Prelude.filter (== 0)" many
         prop "[] due to parser being die" many_empty
         prop "P.some concatFold $ P.takeEndBy_ (== 1) FL.toList = Prelude.filter (== 0)" some
