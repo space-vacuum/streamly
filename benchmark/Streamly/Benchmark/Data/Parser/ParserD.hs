@@ -16,7 +16,9 @@ module Main
 
 import Control.DeepSeq (NFData(..))
 import Control.Monad.Catch (MonadCatch, MonadThrow)
+import Control.Monad.IO.Class (MonadIO)
 import Data.Foldable (asum)
+import Data.Function ((&))
 import Data.Functor (($>))
 import Data.Maybe (fromMaybe)
 import System.Random (randomRIO)
@@ -239,11 +241,21 @@ parseManyGroupsRolling b =
     IP.drain . IP.parseManyD (PR.groupByRolling (\_ _ -> b) FL.drain)
 
 {-# INLINE parseManyGroupsRollingEither #-}
-parseManyGroupsRollingEither :: (MonadThrow m, MonadCatch m) =>
-    (Int -> Int -> Bool) -> SerialT m Int -> m ()
-parseManyGroupsRollingEither cmp =
-       IP.drain
-    .  IP.parseManyD (PR.groupByRollingEither cmp FL.drain FL.drain)
+parseManyGroupsRollingEither :: MonadAsync m =>
+    (Int -> Int -> Bool) -> Int -> m ()
+parseManyGroupsRollingEither cmp value = do
+    sourceUnfoldrM value 1
+        & IP.parseManyD (PR.groupByRollingEither cmp FL.drain FL.drain)
+        & IP.drain
+
+{-# INLINE parseManyGroupsRollingEitherAlt #-}
+parseManyGroupsRollingEitherAlt :: MonadAsync m =>
+    (Int -> Int -> Bool) -> Int -> m ()
+parseManyGroupsRollingEitherAlt cmp value = do
+    sourceUnfoldrM value 1
+        & S.map (\x -> if even x then x + 2 else x)
+        & IP.parseManyD (PR.groupByRollingEither cmp FL.drain FL.drain)
+        & IP.drain
 
 -------------------------------------------------------------------------------
 -- Parsing with unfolds
@@ -368,12 +380,12 @@ o_1_space_serial_nested value =
     , benchIOSink value "parseMany groupBy (1 group)" $ parseManyGroups True
     , benchIOSink value "parseMany groupRollingBy (1 group)"
           $ parseManyGroupsRolling True
-    , benchIOSink value "parseMany groupRollingByEither (Left)"
-          $ parseManyGroupsRollingEither (<)
-    , benchIOSink value "parseMany groupRollingByEither (Right)"
-          $ parseManyGroupsRollingEither (>)
-    , benchIOSinkRandom value "parseMany groupRollingByEither (Alternating)"
-          $ parseManyGroupsRollingEither (>)
+    , bench "parseMany groupRollingByEither (Left)"
+        $ nfIO $ parseManyGroupsRollingEither (<) value
+    , bench "parseMany groupRollingByEither (Right)"
+        $ nfIO $ parseManyGroupsRollingEither (>) value
+    , bench "parseMany groupRollingByEither (Alternating)"
+        $ nfIO $ parseManyGroupsRollingEitherAlt (>) value
     ]
 
 o_1_space_serial_unfold :: Int -> [Array.Array Int] -> [Benchmark]
@@ -412,7 +424,9 @@ o_n_space_serial value =
 -------------------------------------------------------------------------------
 
 main :: IO ()
-main = runWithCLIOptsEnv defaultStreamSize alloc allBenchmarks
+main = do
+    x <- randomRIO (1,1)
+    runWithCLIOptsEnv (defaultStreamSize + x) alloc allBenchmarks
 
     where
 
