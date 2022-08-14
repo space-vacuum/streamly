@@ -336,6 +336,7 @@ common compile-options
                     -Wno-implicit-prelude
                     -Wno-missing-deriving-strategies
                     -Wno-missing-exported-signatures
+                    -Wno-missing-kind-signatures
                     -Wno-missing-import-lists
                     -Wno-missing-local-signatures
                     -Wno-missing-safe-haskell-mode

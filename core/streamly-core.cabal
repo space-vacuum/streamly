@@ -121,6 +121,7 @@ common compile-options
                     -Wno-implicit-prelude
                     -Wno-missing-deriving-strategies
                     -Wno-missing-exported-signatures
+                    -Wno-missing-kind-signatures
                     -Wno-missing-import-lists
                     -Wno-missing-local-signatures
                     -Wno-missing-safe-haskell-mode
@@ -128,6 +129,8 @@ common compile-options
                     -Wno-all-missed-specialisations
                     -Wno-monomorphism-restriction
                     -Wno-prepositive-qualified-module
+                    -Wno-redundant-bang-patterns
+                    -Wno-operator-whitespace
                     -Wno-unsafe
                     -Rghc-timing
 
