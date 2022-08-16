@@ -1463,14 +1463,14 @@ groupByRollingEither
         then grouperR2 s1 s2 a
         else Done 1 . Right <$> fextract2 s2
 
-    extract (GroupByInitPair s1 _) = (Done 0 . Left) <$> fextract1 s1
-    extract (GroupByGroupingPairL _ s1 _) = (Done 0 . Left) <$> fextract1 s1
-    extract (GroupByGroupingPairR _ _ s2) = (Done 0 . Right) <$> fextract2 s2
+    extract (GroupByInitPair s1 _) = Done 0 . Left <$> fextract1 s1
+    extract (GroupByGroupingPairL _ s1 _) = Done 0 . Left <$> fextract1 s1
+    extract (GroupByGroupingPairR _ _ s2) = Done 0 . Right <$> fextract2 s2
     extract (GroupByGroupingPair a s1 _) = do
                 res <- fstep1 s1 a
                 case res of
                     FL.Done b -> return $ Done 0 (Left b)
-                    FL.Partial s11 -> (Done 0 . Left) <$> fextract1 s11
+                    FL.Partial s11 -> Done 0 . Left <$> fextract1 s11
 
 -- XXX use an Unfold instead of a list?
 -- XXX custom combinators for matching list, array and stream?

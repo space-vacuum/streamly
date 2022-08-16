@@ -744,8 +744,8 @@ parseBreakK (PRD.Parser pstep initial extract) stream = do
             PR.Continue 0 _ ->
                 error "parseBreak: extract, Continue 0 creates infinite loop"
             PR.Continue n s -> do
-                assert (n <= Prelude.length (backBuf)) (return ())
-                let (src0, buf1) = splitAt n (backBuf)
+                assert (n <= Prelude.length backBuf) (return ())
+                let (src0, buf1) = splitAt n backBuf
                     arr = A.fromListN n (Prelude.reverse src0)
                 goExtract s buf1 arr
             PR.Done 0 b ->
@@ -1129,8 +1129,8 @@ runArrayFoldManyD
             PR.Done 0 b ->
                 return $ D.Skip $ ParseChunksYield b (ParseChunksInitLeftOver [])
             PR.Done n b -> do
-                assert (n <= sum (map Array.length (backBuf))) (return ())
-                let src0 = takeArrayListRev n (backBuf)
+                assert (n <= sum (map Array.length backBuf)) (return ())
+                let src0 = takeArrayListRev n backBuf
                     src = Prelude.reverse src0
                 return $ D.Skip $ ParseChunksYield b (ParseChunksInitBuf src)
             PR.Error err -> throwM $ ParseError err
