@@ -1032,14 +1032,14 @@ parseBreak (PR.Parser pstep initial extract) stream = do
                 case r of
                     PR.Error err -> throwM $ PR.ParseError err
                     PR.Done n b -> do
-                        assertM (n <= length buf)
+                        assertM(n <= length buf)
                         let src0 = Prelude.take n buf
                             src  = Prelude.reverse src0
                         return (b, fromList src)
                     PR.Partial _ _ -> error "Bug: parseBreak: Partial in extract"
                     PR.Continue 0 _ -> error "parseBreak: extract, Continue 0 creates infinite loop"
                     PR.Continue n s -> do
-                        assertM (n <= length buf)
+                        assertM(n <= length buf)
                         let (src0, buf1) = splitAt n buf
                             src = Prelude.reverse src0
                         goBuf nil buf1 src s
@@ -1049,19 +1049,19 @@ parseBreak (PR.Parser pstep initial extract) stream = do
                 case res of
                     PR.Partial 0 s -> goStream r [] s
                     PR.Partial n s -> do
-                        assertM (n <= length (x:buf))
+                        assertM(n <= length (x:buf))
                         let src0 = Prelude.take n (x:buf)
                             src  = Prelude.reverse src0
                         goBuf r [] src s
                     PR.Continue 0 s -> goStream r (x:buf) s
                     PR.Continue n s -> do
-                        assertM (n <= length (x:buf))
+                        assertM(n <= length (x:buf))
                         let (src0, buf1) = splitAt n (x:buf)
                             src = Prelude.reverse src0
                         goBuf r buf1 src s
                     PR.Done 0 b -> return (b, r)
                     PR.Done n b -> do
-                        assertM (n <= length (x:buf))
+                        assertM(n <= length (x:buf))
                         let src0 = Prelude.take n (x:buf)
                             src  = Prelude.reverse src0
                         return (b, serial (fromList src) r)

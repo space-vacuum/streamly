@@ -549,13 +549,13 @@ parseDToK pstep initial extract leftover (level, count) cont = do
         let s = (level, cnt)
         case r of
             Done n b -> do
-                assertM (n <= cnt)
+                assertM(n <= cnt)
                 cont s (K.Success n b)
             Partial _ _ -> error "Bug: parseDToK Partial unreachable"
             Error e ->
                 cont s (K.Failure e)
             Continue n pst1 -> do
-                assertM (n <= cnt)
+                assertM(n <= cnt)
                 return $ K.Continue n (parseCont (cnt - n) (return pst1))
 
 -- | Convert a direct style 'Parser' to a CPS style 'K.Parser'.
@@ -1077,7 +1077,7 @@ alt (Parser stepL initialL extractL) (Parser stepR initialR extractR) =
             Partial _ _ -> error "Bug: serialWith extract 'Partial'"
             -- XXX Review this.
             Continue n s -> do
-                assertM (n <= cnt)
+                assertM(n <= cnt)
                 return $ Continue n (AltParseL (cnt - n) s)
 
 -- | See documentation of 'Streamly.Internal.Data.Parser.many'.
@@ -1137,14 +1137,14 @@ splitMany (Parser step1 initial1 extract1) (Fold fstep finitial fextract) =
         case r of
             Error _ -> fmap (Done cnt) (fextract fs)
             Done n b -> do
-                assertM (n <= cnt)
+                assertM(n <= cnt)
                 fs1 <- fstep fs b
                 case fs1 of
                     FL.Partial s1 -> fmap (Done n) (fextract s1)
                     FL.Done b1 -> return (Done n b1)
             Partial _ _ -> error "splitMany: Partial in extract"
             Continue n s1 -> do
-                assertM (n <= cnt)
+                assertM(n <= cnt)
                 return (Continue n (Tuple3' s1 (cnt - n) fs))
 
 -- | Like splitMany, but inner fold emits an output at the end even if no input
@@ -1200,14 +1200,14 @@ splitManyPost (Parser step1 initial1 extract1) (Fold fstep finitial fextract) =
         case r of
             Error _ -> fmap (Done cnt) (fextract fs)
             Done n b -> do
-                assertM (n <= cnt)
+                assertM(n <= cnt)
                 fs1 <- fstep fs b
                 case fs1 of
                     FL.Partial s1 -> fmap (Done n) (fextract s1)
                     FL.Done b1 -> return (Done n b1)
             Partial _ _ -> error "splitMany: Partial in extract"
             Continue n s1 -> do
-                assertM (n <= cnt)
+                assertM(n <= cnt)
                 return (Continue n (Tuple3' s1 (cnt - n) fs))
 
 -- | See documentation of 'Streamly.Internal.Data.Parser.some'.
@@ -1289,28 +1289,28 @@ splitSome (Parser step1 initial1 extract1) (Fold fstep finitial fextract) =
         case r of
             Error err -> return (Error err)
             Done n b -> do
-                assertM (n <= cnt)
+                assertM(n <= cnt)
                 fs1 <- fstep fs b
                 case fs1 of
                     FL.Partial s1 -> fmap (Done n) (fextract s1)
                     FL.Done b1 -> return (Done n b1)
             Partial _ _ -> error "splitSome: Partial in extract"
             Continue n s1 -> do
-                assertM (n <= cnt)
+                assertM(n <= cnt)
                 return (Continue n (Tuple3' s1 (cnt - n) (Left fs)))
     extract (Tuple3' s cnt (Right fs)) = do
         r <- extract1 s
         case r of
             Error _ -> fmap (Done cnt) (fextract fs)
             Done n b -> do
-                assertM (n <= cnt)
+                assertM(n <= cnt)
                 fs1 <- fstep fs b
                 case fs1 of
                     FL.Partial s1 -> fmap (Done n) (fextract s1)
                     FL.Done b1 -> return (Done n b1)
             Partial _ _ -> error "splitSome: Partial in extract"
             Continue n s1 -> do
-                assertM (n <= cnt)
+                assertM(n <= cnt)
                 return (Continue n (Tuple3' s1 (cnt - n) (Right fs)))
 
 -- | See 'Streamly.Internal.Data.Parser.die'.
