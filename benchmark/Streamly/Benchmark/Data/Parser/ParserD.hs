@@ -16,7 +16,6 @@ module Main
 
 import Control.DeepSeq (NFData(..))
 import Control.Monad.Catch (MonadCatch, MonadThrow)
-import Control.Monad.IO.Class (MonadIO)
 import Data.Foldable (asum)
 import Data.Function ((&))
 import Data.Functor (($>))

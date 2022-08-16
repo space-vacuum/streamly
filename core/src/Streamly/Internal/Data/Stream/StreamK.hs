@@ -175,11 +175,11 @@ module Streamly.Internal.Data.Stream.StreamK
     )
 where
 
-import Control.Exception (assert)
+#include "assert.hs"
+
 import Control.Monad.Catch (MonadThrow, throwM)
 import Control.Monad.Trans.Class (MonadTrans(lift))
 import Control.Monad (void, join)
-import Streamly.Internal.Control.Exception (assertM)
 import Streamly.Internal.Data.SVar.Type (adaptState, defState)
 
 import qualified Streamly.Internal.Data.Fold.Type as FL
