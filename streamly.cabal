@@ -336,7 +336,6 @@ common compile-options
                     -Wno-implicit-prelude
                     -Wno-missing-deriving-strategies
                     -Wno-missing-exported-signatures
-                    -Wno-missing-kind-signatures
                     -Wno-missing-import-lists
                     -Wno-missing-local-signatures
                     -Wno-missing-safe-haskell-mode
@@ -349,6 +348,7 @@ common compile-options
 
     if impl(ghc >= 9.2)
       ghc-options:
+        -Wno-missing-kind-signatures
         -Wno-redundant-bang-patterns
         -Wno-operator-whitespace
 
