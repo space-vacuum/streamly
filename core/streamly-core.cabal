@@ -129,10 +129,13 @@ common compile-options
                     -Wno-all-missed-specialisations
                     -Wno-monomorphism-restriction
                     -Wno-prepositive-qualified-module
-                    -Wno-redundant-bang-patterns
-                    -Wno-operator-whitespace
                     -Wno-unsafe
                     -Rghc-timing
+
+    if impl(ghc >= 9.2)
+      ghc-options:
+        -Wno-redundant-bang-patterns
+        -Wno-operator-whitespace
 
     if flag(has-llvm)
       ghc-options: -fllvm
