@@ -235,6 +235,7 @@ import Prelude hiding (concatMap, filter)
 -- >>> :m
 -- >>> :set -package streamly
 -- >>> import Control.Applicative ((<|>))
+-- >>> import Data.Bifunctor (second)
 -- >>> import Prelude hiding (concatMap)
 -- >>> import qualified Streamly.Prelude as Stream
 -- >>> import qualified Streamly.Internal.Data.Stream.IsStream as Stream (parse)
