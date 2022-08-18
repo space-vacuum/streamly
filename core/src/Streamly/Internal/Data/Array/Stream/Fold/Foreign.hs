@@ -338,6 +338,10 @@ take n (ArrayFold (ParserD.Parser step1 initial1 extract1)) =
                 return $ case r of
                     Error err -> Error err
                     -- XXX Review
+                    -- XXX Even if we don't consume the input, we make sure we
+                    -- take the number of elements mentioned. Is that the same
+                    -- behaviour in normal parsers also? I don't think it
+                    -- is. This should be "Done n b"
                     Done _ b -> Done 0 b
                     Continue n1 s1 -> Continue n1 (Tuple' i2 s1)
                     Partial _ _ -> error "Partial in extract"

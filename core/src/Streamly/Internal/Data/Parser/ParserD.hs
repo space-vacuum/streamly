@@ -504,6 +504,7 @@ takeBetween low high (Fold fstep finitial fextract) =
 
     -- Exactly the same as snext except different constructors, we can possibly
     -- deduplicate the two.
+    -- XXX We can create a translateStep :: (Step s b) -> (Initial s b)
     {-# INLINE inext #-}
     inext i res =
         let i1 = i + 1
@@ -2003,7 +2004,6 @@ sepBy
                     FL.Partial fs1 -> fmap (Done n) $ fextract fs1
                     FL.Done c -> return (Done n c)
             Error err -> return $ Error err
-            -- XXX Review
             Continue n s -> return $ Continue n (SepByInit fs s)
             Partial _ _ -> error "Partial in extract"
 
@@ -2250,6 +2250,8 @@ manyTill (Fold fstep finitial fextract)
                     FL.Done c -> return (Done n c)
             Error err -> return $ Error err
             -- XXX Review
-            Continue n s -> return $ Continue n (ManyTillL (cnt - n) fs s)
+            Continue n s -> do
+                assertM(n == cnt)
+                return $ Continue n (ManyTillL (cnt - n) fs s)
             Partial _ _ -> error "Partial in extract"
     extract (ManyTillR _ fs _) = fmap (Done 0) $ fextract fs

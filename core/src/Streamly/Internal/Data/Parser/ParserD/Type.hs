@@ -215,13 +215,10 @@ where
 import Control.Applicative (Alternative(..), liftA2)
 import Control.Exception (Exception(..))
 import Control.Monad (MonadPlus(..), (>=>))
--- import Control.Monad ((>=>))
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import Control.Monad.Reader.Class (MonadReader, ask, local)
 import Control.Monad.State.Class (MonadState, get, put)
--- import Control.Monad.Catch (MonadCatch, try, throwM, MonadThrow)
 import Data.Bifunctor (Bifunctor(..))
--- import Data.Functor ((<&>))
 import Fusion.Plugin.Types (Fuse(..))
 import Streamly.Internal.Data.Fold.Type (Fold(..), toList)
 import Streamly.Internal.Data.Tuple.Strict (Tuple3'(..))
@@ -339,6 +336,7 @@ data Step s b =
     | Continue !Int !s
     -- ^ @Continue count state@. The following hold on a Continue result:
     --
+    -- XXX The doc needs to be updated
     -- 1. @extract@ on @state@ would give the last 'Partial' result or throw
     -- 'ParseError' if there is none.
     -- 2. Input stream position is reset to @current position - count@.
@@ -380,6 +378,14 @@ instance Functor (Step s) where
     {-# INLINE fmap #-}
     fmap = second
 
+assertStepCount :: Int -> m (Step s b) -> (Step s b)
+assertStepCount i step =
+    case step of
+        Partial n _ -> assert (i == n) step
+        Continue n _ -> assert (i == n) step
+        Done n _ -> assert (i == n) step
+        Error _ -> step
+
 -- XXX Use Int -> s -> m (Step s1 b) to take n into account?
 
 -- | Map an extract function over the state of Step
@@ -390,10 +396,11 @@ extractStep f res =
     case res of
         -- XXX When step says (Partial n) extract must say (Done n)
         -- We can assert that.
-        Partial _ s1 -> f s1
-        Done n b -> return $ Done n b
+        Partial n s1 -> assertStepCount n <$> f s1
+        Done n b -> return $ assertStepCount n $ Done n b
         -- XXX What to do with n?
-        Continue _n s1 -> f s1
+        -- XXX We can assert that this n would be the same as n of f s1
+        Continue n s1 -> assertStepCount n <$> f s1
         Error err -> return $ Error err
 
 {-# INLINE mapStateStep #-}
@@ -550,6 +557,8 @@ parseDToK pstep initial extract leftover (level, count) cont = do
         let s = (level, cnt)
         case r of
             Done n b -> do
+                -- XXX Ah this is a CPP macro. A little confusion. Can we
+                -- captitalize this? ASSERTM(...)
                 assertM(n <= cnt)
                 cont s (K.Success n b)
             Partial _ _ -> error "Bug: parseDToK Partial unreachable"
@@ -645,6 +654,7 @@ fromParserK parser = Parser step initial extract
 -- General parser constructors
 ------------------------------------------------------------------------------
 
+-- XXX We can remove these. I don't find these very useful.
 {-
 -- | Make a parser using a parsing step and a starting value.
 --
@@ -1062,6 +1072,8 @@ alt (Parser stepL initialL extractL) (Parser stepR initialR extractR) =
             Done n b -> Done n b
             Error err -> Error err
 
+    -- XXX Using first in some places and using mapStateStep in some places is a
+    -- little confusing. We can just use first and second everywhere.
     extract (AltParseR sR) = fmap (mapStateStep AltParseR) (extractR sR)
 
     extract (AltParseL cnt sL) = do
@@ -1077,8 +1089,9 @@ alt (Parser stepL initialL extractL) (Parser stepR initialR extractR) =
                           IError err -> Error err
             Partial _ _ -> error "Bug: serialWith extract 'Partial'"
             -- XXX Review this.
+            -- XXX n will always be cnt. I'm changing the assert here!
             Continue n s -> do
-                assertM(n <= cnt)
+                assertM(n == cnt)
                 return $ Continue n (AltParseL (cnt - n) s)
 
 -- | See documentation of 'Streamly.Internal.Data.Parser.many'.
@@ -1132,10 +1145,14 @@ splitMany (Parser step1 initial1 extract1) (Fold fstep finitial fextract) =
     -- case below. If the parser succeeds even without input this will behave
     -- like splitManyPost otherwise splitMany. Can we then remove
     -- splitManyPost?
+    -- XXX How is that the crrect behaviour anymore? Depends on the usecase, we
+    -- can discuss thie further
     extract (Tuple3' _ 0 fs) = fmap (Done 0) (fextract fs)
     extract (Tuple3' s cnt fs) = do
         r <- extract1 s
         case r of
+            -- XXX I would prefer using second over fmap. Too many things to
+            -- keep in mind. fmap & first & second & mapStateStep
             Error _ -> fmap (Done cnt) (fextract fs)
             Done n b -> do
                 assertM(n <= cnt)
@@ -1145,7 +1162,8 @@ splitMany (Parser step1 initial1 extract1) (Fold fstep finitial fextract) =
                     FL.Done b1 -> return (Done n b1)
             Partial _ _ -> error "splitMany: Partial in extract"
             Continue n s1 -> do
-                assertM(n <= cnt)
+                -- XXX n == cnt
+                assertM(n == cnt)
                 return (Continue n (Tuple3' s1 (cnt - n) fs))
 
 -- | Like splitMany, but inner fold emits an output at the end even if no input
@@ -1208,7 +1226,7 @@ splitManyPost (Parser step1 initial1 extract1) (Fold fstep finitial fextract) =
                     FL.Done b1 -> return (Done n b1)
             Partial _ _ -> error "splitMany: Partial in extract"
             Continue n s1 -> do
-                assertM(n <= cnt)
+                assertM(n == cnt)
                 return (Continue n (Tuple3' s1 (cnt - n) fs))
 
 -- | See documentation of 'Streamly.Internal.Data.Parser.some'.
@@ -1297,7 +1315,8 @@ splitSome (Parser step1 initial1 extract1) (Fold fstep finitial fextract) =
                     FL.Done b1 -> return (Done n b1)
             Partial _ _ -> error "splitSome: Partial in extract"
             Continue n s1 -> do
-                assertM(n <= cnt)
+                -- XXX Changing assert to ==
+                assertM(n == cnt)
                 return (Continue n (Tuple3' s1 (cnt - n) (Left fs)))
     extract (Tuple3' s cnt (Right fs)) = do
         r <- extract1 s
@@ -1311,7 +1330,8 @@ splitSome (Parser step1 initial1 extract1) (Fold fstep finitial fextract) =
                     FL.Done b1 -> return (Done n b1)
             Partial _ _ -> error "splitSome: Partial in extract"
             Continue n s1 -> do
-                assertM(n <= cnt)
+                -- XXX Changing assert to ==
+                assertM(n == cnt)
                 return (Continue n (Tuple3' s1 (cnt - n) (Right fs)))
 
 -- | See 'Streamly.Internal.Data.Parser.die'.
