@@ -45,6 +45,12 @@ cmp s eq list =
         stream <- run $ Stream.fold Fold.toList  s
         listEquals eq stream list
 
+cmp2 :: ([Int] -> [Int] -> Bool) -> [Int] -> Stream IO Int -> Property
+cmp2 eq list s =
+    monadicIO $ do
+        stream <- run $ Stream.fold Fold.toList  s
+        listEquals eq stream list
+
 prop1 :: Testable prop => String -> prop -> SpecWith ()
 prop1 x y = modifyMaxSuccess (const 1) $ prop x y
 
@@ -236,50 +242,78 @@ main = hspec
                 (fmap (+1) . Async.eval . fmap (+1))
 
         asyncSpec $ prop "sequenceWith" . sequenceReplicate
-        -- XXX Need to use asyncSpec in all tests
-        prop "mapM (+1)" $
-            transform (fmap (+1)) (Async.mapM (\x -> return (x + 1)))
+        asyncSpec $ prop "mapM all configs mapM (+1)"
+                    . transform (fmap (+1))
+                    . (`Async.mapMWith` (\x -> return (x + 1)))
 
         -- XXX Need to use eq instead of sortEq for ahead oeprations
         -- Binary append
-        prop1 "append [] []"
-            $ cmp (Async.append [Stream.nil, Stream.nil]) sortEq []
-        prop1 "append [] [1]"
-            $ cmp (Async.append [Stream.nil, Stream.fromPure 1]) sortEq [1]
-        prop1 "append [1] []"
-            $ cmp (Async.append [Stream.fromPure 1, Stream.nil]) sortEq [1]
-        prop1 "append [0] [1]"
-            $ let stream = Async.append [Stream.fromPure 0, Stream.fromPure 1]
-               in cmp stream sortEq [0, 1]
+        asyncSpec $
+            let appWith cfg = Async.combineWith cfg Stream.nil Stream.nil
+            in prop1 "mapM all configs append [] []"
+                    . cmp2 sortEq [] . appWith
 
-        prop1 "append [0] [] [1]"
-            $ let stream =
-                    Async.append
-                        [Stream.fromPure 0, Stream.nil, Stream.fromPure 1]
-               in cmp stream sortEq [0, 1]
+        asyncSpec $
+            let appWith cfg = Async.combineWith cfg Stream.nil (Stream.fromPure 1)
+            in prop1 "mapM all configs append [] [1]"
+                    . cmp2 sortEq [1] . appWith
 
-        prop1 "append2 left associated"
-            $ let stream =
-                    Stream.fromPure 0
-                        `Async.append2` Stream.fromPure 1
-                        `Async.append2` Stream.fromPure 2
-                        `Async.append2` Stream.fromPure 3
-               in cmp stream sortEq [0, 1, 2, 3]
 
-        prop1 "append right associated"
-            $ let stream =
-                    Stream.fromPure 0
-                        `Async.append2` (Stream.fromPure 1
-                        `Async.append2` (Stream.fromPure 2
-                        `Async.append2` Stream.fromPure 3))
-               in cmp stream sortEq [0, 1, 2, 3]
+        asyncSpec $
+            let appWith cfg = Async.combineWith
+                        cfg Stream.nil (Stream.fromPure 1)
+            in prop1 "mapM all configs append [1] []"
+                    . cmp2 sortEq [1] . appWith
 
-        prop1 "append balanced"
-            $ let leaf x y = Stream.fromPure x `Async.append2` Stream.fromPure y
-                  leaf11 = leaf 0 1 `Async.append2` leaf 2 (3 :: Int)
-                  leaf12 = leaf 4 5 `Async.append2` leaf 6 7
-                  stream = leaf11 `Async.append2` leaf12
-               in cmp stream sortEq [0, 1, 2, 3, 4, 5, 6,7]
+        asyncSpec $
+            let appWith cfg = Async.combineWith
+                        cfg (Stream.fromPure 0) (Stream.fromPure 1)
+            in prop1 "mapM all configs append [0] [1]"
+                    . cmp2 sortEq [0, 1] . appWith
+
+        asyncSpec $
+            let appWith cfg =
+                    Async.combineWith cfg
+                        (Async.combineWith cfg (Stream.fromPure 0) Stream.nil)
+                        (Stream.fromPure 1)
+            in prop1 "mapM all configs append [0] [] [1]"
+                    . cmp2 sortEq [0, 1] . appWith
+
+        asyncSpec $
+            let appWith cfg =
+                    Async.combineWith cfg
+                        (Async.combineWith cfg
+                            (Async.combineWith cfg
+                                (Stream.fromPure 0) (Stream.fromPure 1))
+                            (Stream.fromPure 2))
+                        (Stream.fromPure 3)
+            in prop1 "mapM all configs append left associated"
+                    . cmp2 sortEq [0, 1, 2, 3] . appWith
+
+        asyncSpec $
+            let appWith cfg =
+                    Async.combineWith cfg
+                        (Stream.fromPure 0)
+                        (Async.combineWith cfg
+                            (Stream.fromPure 1)
+                            (Async.combineWith cfg
+                                (Stream.fromPure 2) (Stream.fromPure 3))
+                        )
+            in prop1 "mapM all configs append right associated"
+                    . cmp2 sortEq [0, 1, 2, 3] . appWith
+
+        asyncSpec $
+            let leaf x y cfg =
+                    Async.combineWith cfg (Stream.fromPure x)
+                        (Stream.fromPure y)
+                leaf11 cfg =
+                    Async.combineWith cfg (leaf 0 1 cfg) $ leaf 2 (3 :: Int) cfg
+                leaf12 cfg =
+                    Async.combineWith cfg (leaf 4 5 cfg) $ leaf 6 7 cfg
+                appWith cfg =
+                    Async.combineWith cfg (leaf11 cfg) (leaf12 cfg)
+            in prop1 "mapM all configs append balanced"
+                    . cmp2 sortEq [0, 1, 2, 3, 4, 5, 6,7] . appWith
 
         prop1 "combineWith (maxThreads 1)"
             $ let stream =
