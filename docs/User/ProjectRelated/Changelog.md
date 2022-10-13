@@ -3,6 +3,38 @@
 <!-- See rendered changelog at https://streamly.composewell.com -->
 ## 0.9.0 (Unreleased)
 
+### Breaking changes
+
+Multiple combinators now only work with `SerialT`. All other types need to be
+adapted accordingly using `adapt`. Any combinator `f` should now become `f
+. adapt`.
+
+Combinators that work with arrays require an `Unbox` constraint instead of
+`Storable`.
+
+Imports that may be required:
+```
+import Streamly.Prelude (adapt)
+import Streamly.Data.Array.Unboxed (Unbox)
+```
+
+* `Streamly.Unicode.Stream`
+  * Encoding and decoding combinators need to be adapted accordingly.
+
+* `Streamly.Network.Socket`
+  * `writeChunks` and `writeChunk` need an `Unbox` constraint instead of
+    `Storable`.
+
+* `Streamly.Data.Unfold`
+  * The signature of `replicateM` is changed.
+  * The order of arguments in `many` is changed.
+  * The seed of `fromStream` needs to be adapted accordingly.
+
+* `Streamly.Data.Array.Foreign`
+  * The `Unbox` constraint is required instead of `Storable`.
+
+### Miscellaneous
+
 * Remove support for GHC 8.4.*
 * The unboxed arrays now require `Unbox` instance along with `Storable` for the
   stored type. The `Unbox` typeclass can be found in `Streamly.Data.Unbox`.
