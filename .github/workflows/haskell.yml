@@ -48,6 +48,9 @@ jobs:
       COVERAGE: ${{ matrix.coverage }}
       DOCTEST: ${{ matrix.doctest }}
 
+      # Subdir
+      SUBDIR: ${{ matrix.subdir }}
+
     runs-on: ${{ matrix.runner }}
     continue-on-error: ${{ matrix.ignore_error }}
     strategy:
@@ -103,6 +106,13 @@ jobs:
             cabal_version: 3.6.2.0
             cabal_project: cabal.project.streamly
             ignore_error: true
+          - name: 9.0.2-streamly-core-sdist
+            ghc_version: 9.0.2
+            runner: ubuntu-latest
+            build: cabal
+            cabal_version: 3.6.2.0
+            ignore_error: true
+            subdir: core
           - name: 8.10.7-streamly-sdist-stack
             runner: ubuntu-latest
             build: stack
@@ -235,5 +245,10 @@ jobs:
           export TOOLS_DIR=/opt
           # /usr/local/opt/curl/bin for macOS
           export PATH=$HOME/.local/bin:$HOME/.ghcup/bin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/local/opt/curl/bin
+          if test -n "$SUBDIR"
+          then
+            mv "$PACKCHECK_LOCAL_PATH" "$SUBDIR/packcheck.sh"
+            cd "$SUBDIR"
+          fi
           bash -c "$PACKCHECK_LOCAL_PATH $BUILD"
         fi
