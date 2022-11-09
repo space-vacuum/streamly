@@ -249,8 +249,8 @@ jobs:
           then
             mv "$PACKCHECK_LOCAL_PATH" "$SUBDIR/packcheck.sh"
             # This is required as dist-newstyle will be created on the top level
-            # directory.
-            rm *.cabal
+            # directory is considered the working dir.
+            rm cabal.project
             cd "$SUBDIR"
           fi
           bash -c "$PACKCHECK_LOCAL_PATH $BUILD"
