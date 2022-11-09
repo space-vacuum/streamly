@@ -248,6 +248,9 @@ jobs:
           if test -n "$SUBDIR"
           then
             mv "$PACKCHECK_LOCAL_PATH" "$SUBDIR/packcheck.sh"
+            # This is required as dist-newstyle will be created on the top level
+            # directory.
+            rm *.cabal
             cd "$SUBDIR"
           fi
           bash -c "$PACKCHECK_LOCAL_PATH $BUILD"
