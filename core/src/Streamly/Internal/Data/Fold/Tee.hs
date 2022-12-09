@@ -10,6 +10,7 @@
 -- 'Semigroup', 'Monoid', 'Num', 'Floating' and 'Fractional' instances.
 --
 module Streamly.Internal.Data.Fold.Tee
+{-# DEPRECATED "Please use \"Streamly.Internal.Data.Fold\" instead." #-}
     ( Tee(..)
     )
 where
